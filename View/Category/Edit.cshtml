@@ -1,0 +1,225 @@
+@model Category
+@{
+    ViewData["Title"] = "Edit Category";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Edit Category</h1>
+            <p class="text-muted mb-0">Update category information</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Category")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Categories
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2 text-gold"></i>Edit Category: @Model.Name
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CreatedAt" />
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Name" class="form-label">Category Name <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter category name">
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4" 
+                                      placeholder="Enter a brief description of this category"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="ImageUrl" class="form-label">Image URL</label>
+                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
+                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                            <small class="text-muted">Enter a URL for the category image</small>
+                        </div>
+                        
+                        <div class="col-md-12 mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox">
+                                <label asp-for="IsActive" class="form-check-label">Active Category</label>
+                            </div>
+                            <small class="text-muted">Inactive categories won't be visible to customers</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <a href="@Url.Action("Index", "Category")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <a href="@Url.Action("Delete", "Category", new { id = Model.Id })" class="btn btn-outline-danger ms-auto">
+                            <i class="fas fa-trash me-2"></i>Delete
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Current Preview -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-eye me-2 text-info"></i>Current Preview
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="category-preview">
+                    <div class="preview-image mb-3" id="imagePreview">
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" alt="@Model.Name">
+                        }
+                        else
+                        {
+                            <div class="no-image-preview">
+                                <i class="fas fa-folder fa-3x text-muted"></i>
+                            </div>
+                        }
+                    </div>
+                    <h6 class="text-navy" id="namePreview">@Model.Name</h6>
+                    <p class="text-muted small" id="descPreview">@(Model.Description ?? "No description")</p>
+                    <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                        @(Model.IsActive ? "Active" : "Inactive")
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Category Stats -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2 text-info"></i>Category Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="stat-row d-flex justify-content-between mb-2">
+                    <span class="text-muted">Products:</span>
+                    <strong class="text-navy">@Model.Furnitures.Count</strong>
+                </div>
+                <div class="stat-row d-flex justify-content-between mb-2">
+                    <span class="text-muted">Created:</span>
+                    <strong class="text-navy">@Model.CreatedAt.ToString("MMM dd, yyyy")</strong>
+                </div>
+                <div class="stat-row d-flex justify-content-between">
+                    <span class="text-muted">Status:</span>
+                    <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                        @(Model.IsActive ? "Active" : "Inactive")
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products in Category -->
+        @if (Model.Furnitures.Any())
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-couch me-2 text-gold"></i>Products (@Model.Furnitures.Count)
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="max-height: 800px; overflow-y: auto;">
+                        @foreach (var furniture in Model.Furnitures)
+                        {
+                            <div class="list-group-item d-flex align-items-center">
+                                <img src="@furniture.ImageUrl" alt="@furniture.Name" 
+                                     class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <small class="d-block text-navy">@furniture.Name</small>
+                                    <small class="text-muted">₹@furniture.Price.ToString("N0")</small>
+                                </div>
+                                <a href="@Url.Action("Edit", "Furniture", new { id = furniture.Id })" class="btn btn-sm btn-light ms-2">
+                                    <i class="fas fa-external-link-alt text-muted"></i>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <style>
+        .category-preview {
+            text-align: center;
+        }
+        
+        .preview-image {
+            height: 150px;
+            background: var(--bg-light-beige);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .preview-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .stat-row {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .text-gold {
+            color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        // Live preview
+        document.getElementById('Name').addEventListener('input', function() {
+            document.getElementById('namePreview').textContent = this.value || 'Category Name';
+        });
+        
+        document.getElementById('Description').addEventListener('input', function() {
+            document.getElementById('descPreview').textContent = this.value || 'No description';
+        });
+        
+        document.getElementById('ImageUrl').addEventListener('input', function() {
+            const preview = document.getElementById('imagePreview');
+            if (this.value) {
+                preview.innerHTML = `<img src="${this.value}" alt="Preview" onerror="this.parentElement.innerHTML='<div class=\\'no-image-preview\\'><i class=\\'fas fa-exclamation-triangle fa-2x text-warning\\'></i></div>'">`;
+            } else {
+                preview.innerHTML = '<div class="no-image-preview"><i class="fas fa-folder fa-3x text-muted"></i></div>';
+            }
+        });
+    </script>
+}

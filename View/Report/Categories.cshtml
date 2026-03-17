@@ -1,0 +1,219 @@
+@model List<FurnitureOrderingSystemAdmin.Models.Category>
+@{
+    ViewData["Title"] = "Category Reports";
+    var categoryStats = ViewBag.CategoryStats as List<dynamic>;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="fas fa-th-large me-2"></i>Category Reports
+                    </h2>
+                    <p class="text-muted">Category-wise performance breakdown</p>
+                </div>
+                <div>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Categories</h6>
+                            <h3 class="mb-0">@ViewBag.TotalCategories</h3>
+                        </div>
+                        <i class="fas fa-th-large fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Furniture</h6>
+                            <h3 class="mb-0">@ViewBag.TotalFurniture</h3>
+                        </div>
+                        <i class="fas fa-couch fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Revenue</h6>
+                            <h3 class="mb-0">₹@ViewBag.TotalRevenue.ToString("N0")</h3>
+                        </div>
+                        <i class="fas fa-rupee-sign fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Category Performance Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>Revenue by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (categoryStats != null && categoryStats.Any())
+                    {
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="categoryRevenueChart"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>No revenue data available.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Items by Category Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2 text-info"></i>Items per Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (categoryStats != null && categoryStats.Any())
+                    {
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="categoryItemsChart"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>No category data available.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Statistics Table -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-table me-2"></i>Category Statistics
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (categoryStats != null && categoryStats.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th class="text-center">Total Items</th>
+                                <th class="text-center">Active Items</th>
+                                <th class="text-center">Items Sold</th>
+                                <th class="text-end">Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cat in categoryStats)
+                            {
+                                <tr>
+                                    <td><strong>@cat.Name</strong></td>
+                                    <td>@(cat.Description ?? "-")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">@cat.FurnitureCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">@cat.ActiveFurnitureCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@cat.TotalSold</span>
+                                    </td>
+                                    <td class="text-end text-success">
+                                        <strong>₹@cat.TotalRevenue.ToString("N0")</strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="2">Totals:</th>
+                                <th class="text-center">@categoryStats.Sum(x => (int)x.FurnitureCount)</th>
+                                <th class="text-center">@categoryStats.Sum(x => (int)x.ActiveFurnitureCount)</th>
+                                <th class="text-center">@categoryStats.Sum(x => (int)x.TotalSold)</th>
+                                <th class="text-end text-success">₹@categoryStats.Sum(x => (decimal)x.TotalRevenue).ToString("N0")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>No category data found.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @{
+        var labels = new List<string>();
+        var revenueData = new List<decimal>();
+        var itemsData = new List<int>();
+        var hasData = false;
+
+        if (categoryStats != null && categoryStats.Any())
+        {
+            hasData = true;
+            labels = categoryStats.Select(c => (string)c.Name).ToList();
+            revenueData = categoryStats.Select(c => (decimal)c.TotalRevenue).ToList();
+            itemsData = categoryStats.Select(c => (int)c.FurnitureCount).ToList();
+        }
+    }
+
+    @if (hasData)
+    {
+        <script>
+            // Data from Server
+            var chartLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(labels));
+            var chartRevenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revenueData));
+            var chartItemsData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(itemsData));
+
+            // Initialize Charts
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.ReportCharts) {
+                    ReportCharts.initCategoryCharts(chartLabels, chartRevenueData, chartItemsData);
+                }
+            });
+        </script>
+    }
+}

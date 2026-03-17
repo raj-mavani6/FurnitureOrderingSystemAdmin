@@ -1,0 +1,295 @@
+@model List<Category>
+@{
+    ViewData["Title"] = "Category Management";
+    var searchTerm = ViewBag.SearchTerm as string;
+    var isActive = ViewBag.IsActive as bool?;
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Category Management</h1>
+            <p class="text-muted mb-0">Manage furniture categories and organization</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Create", "Category")" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Category
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Category Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card bg-primary">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count</h4>
+                <p class="stat-label">Total Categories</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-folder"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-success">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(c => c.IsActive)</h4>
+                <p class="stat-label">Active Categories</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-warning">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(c => !c.IsActive)</h4>
+                <p class="stat-label">Inactive Categories</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-pause-circle"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-info">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Sum(c => c.Furnitures.Count)</h4>
+                <p class="stat-label">Total Products</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-couch"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search Categories</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by name, description..." value="@searchTerm">
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="isActive" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="true" selected="@(isActive == true)">Active Only</option>
+                    <option value="false" selected="@(isActive == false)">Inactive Only</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a href="@Url.Action("Index", "Category")" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Categories List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            Categories (@Model.Count)
+        </h5>
+    </div>
+    
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="row g-4">
+                @foreach (var category in Model)
+                {
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <div class="category-card h-100">
+                            <div class="category-image">
+                                @if (!string.IsNullOrEmpty(category.ImageUrl))
+                                {
+                                    <img src="@category.ImageUrl" alt="@category.Name" class="img-fluid">
+                                }
+                                else
+                                {
+                                    <div class="no-image">
+                                        <i class="fas fa-folder fa-3x text-muted"></i>
+                                    </div>
+                                }
+                                <span class="badge bg-@(category.IsActive ? "success" : "secondary") position-absolute top-0 end-0 m-2">
+                                    @(category.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </div>
+                            
+                            <div class="category-info">
+                                <h6 class="text-navy mb-1">@category.Name</h6>
+                                <p class="text-muted small mb-2">
+                                    @(string.IsNullOrEmpty(category.Description) ? "No description" : 
+                                      (category.Description.Length > 60 ? category.Description.Substring(0, 60) + "..." : category.Description))
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-couch me-1"></i>@category.Furnitures.Count products
+                                    </span>
+                                    <small class="text-muted">@category.CreatedAt.ToString("MMM yyyy")</small>
+                                </div>
+                                
+                                <div class="category-actions">
+                                    <div class="btn-group w-100" role="group">
+                                        <a href="@Url.Action("Edit", "Category", new { id = category.Id })" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-@(category.IsActive ? "warning" : "success") btn-sm" 
+                                                onclick="toggleCategoryStatus(@category.Id)">
+                                            <i class="fas fa-@(category.IsActive ? "pause" : "play")"></i>
+                                        </button>
+                                        <a href="@Url.Action("Delete", "Category", new { id = category.Id })" 
+                                           class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No categories found</h5>
+                <p class="text-muted">
+                    @if (!string.IsNullOrEmpty(searchTerm) || isActive.HasValue)
+                    {
+                        <span>No categories match your search criteria.</span>
+                    }
+                    else
+                    {
+                        <span>Get started by adding your first category.</span>
+                    }
+                </p>
+                <a href="@Url.Action("Create", "Category")" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Category
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-image {
+            height: 150px;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg-light-beige);
+        }
+
+        .category-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .no-image {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-info {
+            padding: 1rem;
+        }
+
+        .text-gold {
+            color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        function toggleCategoryStatus(categoryId) {
+            if (confirm('Toggle category status?')) {
+                fetch('@Url.Action("ToggleStatus", "Category")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=${categoryId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        AdminUtils.showNotification('Category status updated', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        AdminUtils.showNotification('Failed to update category status', 'error');
+                    }
+                })
+                .catch(error => {
+                    AdminUtils.showNotification('An error occurred', 'error');
+                });
+            }
+        }
+    </script>
+}

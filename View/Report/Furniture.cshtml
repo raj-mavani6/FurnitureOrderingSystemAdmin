@@ -1,0 +1,318 @@
+@model List<FurnitureOrderingSystemAdmin.Models.Furniture>
+@{
+    ViewData["Title"] = "Furniture Reports";
+    var furnitureReviews = ViewBag.FurnitureReviews as Dictionary<int, List<FurnitureOrderingSystemAdmin.Models.Review>>;
+    var bestSellingItems = ViewBag.BestSellingItems as List<dynamic>;
+    var categorySales = ViewBag.CategorySales as List<dynamic>;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="fas fa-couch me-2"></i>Furniture Reports
+                    </h2>
+                    <p class="text-muted">Furniture performance and sales analysis</p>
+                </div>
+                <div>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Reports
+                    </a>
+                    <a href="@Url.Action("ExportFurnitureCSV")" class="btn btn-primary">
+                        <i class="fas fa-download me-1"></i>Export CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Furniture</h6>
+                            <h3 class="mb-0">@ViewBag.TotalItems</h3>
+                        </div>
+                        <i class="fas fa-couch fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Active Items</h6>
+                            <h3 class="mb-0">@ViewBag.ActiveItems</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Inactive Items</h6>
+                            <h3 class="mb-0">@ViewBag.InactiveItems</h3>
+                        </div>
+                        <i class="fas fa-times-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Categories</h6>
+                            <h3 class="mb-0">@ViewBag.TotalCategories</h3>
+                        </div>
+                        <i class="fas fa-th-large fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Best Selling Items -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2 text-warning"></i>Best Selling Furniture
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (bestSellingItems != null && bestSellingItems.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Furniture</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Rating</th>
+                                        <th>Sold</th>
+                                        <th>Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int rank = 1; }
+                                    @foreach (var item in bestSellingItems)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (rank <= 3)
+                                                {
+                                                    <span class="badge @(rank == 1 ? "bg-warning" : rank == 2 ? "bg-secondary" : "bg-danger")">
+                                                        #@rank
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">#@rank</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <strong>@item.Name</strong>
+                                            </td>
+                                            <td>@item.CategoryName</td>
+                                            <td>₹@item.Price.ToString("N0")</td>
+                                            <td>
+                                                @if (item.AvgRating > 0)
+                                                {
+                                                    <span class="text-warning">
+                                                        <i class="fas fa-star"></i> @item.AvgRating.ToString("F1")
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No reviews</span>
+                                                }
+                                            </td>
+                                            <td><span class="badge bg-primary">@item.TotalSold units</span></td>
+                                            <td class="text-success"><strong>₹@item.Revenue.ToString("N0")</strong></td>
+                                        </tr>
+                                        rank++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>No sales data available yet.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Sales -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-th-large me-2 text-info"></i>Sales by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (categorySales != null && categorySales.Any())
+                    {
+                        <div class="chart-container" style="height: 250px;">
+                            <canvas id="categorySalesChart"></canvas>
+                        </div>
+                        <hr />
+                        @foreach (var cat in categorySales)
+                        {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>@cat.CategoryName</span>
+                                <strong>₹@cat.TotalRevenue.ToString("N0")</strong>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>No category sales data.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Furniture Table -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>All Furniture Items
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Reviews</th>
+                                <th>Avg Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var reviews = furnitureReviews != null && furnitureReviews.ContainsKey(item.Id) ? furnitureReviews[item.Id] : new List<FurnitureOrderingSystemAdmin.Models.Review>();
+                                var avgRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                                <tr>
+                                    <td>@item.Id</td>
+                                    <td><strong>@item.Name</strong></td>
+                                    <td>@(item.Category?.Name ?? "N/A")</td>
+                                    <td>₹@item.Price.ToString("N0")</td>
+                                    <td>
+                                        @if (item.IsAvailable)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>@reviews.Count</td>
+                                    <td>
+                                        @if (avgRating > 0)
+                                        {
+                                            <span class="text-warning">
+                                                <i class="fas fa-star"></i> @avgRating.ToString("F1")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>No furniture items found.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @{
+        var labels = new List<string>();
+        var data = new List<decimal>();
+        var hasData = false;
+
+        if (categorySales != null && categorySales.Any())
+        {
+            hasData = true;
+            labels = categorySales.Select(c => (string)c.CategoryName).ToList();
+            data = categorySales.Select(c => (decimal)c.TotalRevenue).ToList();
+        }
+    }
+
+    @if (hasData)
+    {
+        <script>
+            // Data from Server
+            var chartLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(labels));
+            var chartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(data));
+
+            var ctx = document.getElementById('categorySalesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: [
+                            '#0d6efd', '#198754', '#dc3545', '#ffc107', '#0dcaf0',
+                            '#6f42c1', '#fd7e14', '#20c997', '#6c757d', '#d63384'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        </script>
+    }
+}

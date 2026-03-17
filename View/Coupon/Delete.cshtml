@@ -1,0 +1,102 @@
+@model Coupon
+@{
+    ViewData["Title"] = "Delete Coupon";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Delete Coupon</h1>
+            <p class="text-muted mb-0">Confirm deletion of coupon</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Coupons
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-warning me-2"></i>
+                    Are you sure you want to delete this coupon? This action cannot be undone.
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Coupon Code</h6>
+                        <p class="h5 text-primary">@Model.CouponCode</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Status</h6>
+                        <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                            @(Model.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h6 class="text-muted">Description</h6>
+                        <p>@Model.Description</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Discount</h6>
+                        <p>
+                            @if (Model.DiscountType == "Percentage")
+                            {
+                                <span>@Model.DiscountValue%</span>
+                            }
+                            else
+                            {
+                                <span>₹@Model.DiscountValue</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Min Order</h6>
+                        <p>₹@Model.MinimumOrderAmount.ToString("N0")</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Expiry Date</h6>
+                        <p>@Model.ExpiryDate.ToString("MMM dd, yyyy")</p>
+                    </div>
+                </div>
+                
+                @if (Model.CustomerCoupons?.Any() == true)
+                {
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This coupon has been assigned to <strong>@Model.CustomerCoupons.Count</strong> customer(s).
+                        Deleting will remove all assignments.
+                    </div>
+                }
+                
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Delete Coupon
+                        </button>
+                        <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

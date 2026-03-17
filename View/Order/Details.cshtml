@@ -1,0 +1,517 @@
+@model Order
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Order Details</h1>
+            <p class="text-muted mb-0">Order #@Model.OrderNumber</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary" onclick="printOrder()">
+                    <i class="fas fa-print me-2"></i>Print
+                </button>
+                <a href="@Url.Action("Index", "Order")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Overview -->
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Order Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>Order Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-group mb-3">
+                            <label class="fw-semibold text-navy">Order Number:</label>
+                            <p class="mb-0">#@Model.OrderNumber</p>
+                        </div>
+                        
+                        <div class="info-group mb-3">
+                            <label class="fw-semibold text-navy">Order Date:</label>
+                            <p class="mb-0">@Model.OrderDate.ToString("MMMM dd, yyyy 'at' HH:mm")</p>
+                        </div>
+                        
+                        <div class="info-group mb-3">
+                            <label class="fw-semibold text-navy">Total Amount:</label>
+                            <p class="mb-0 h5 text-navy">₹@Model.TotalAmount.ToString("N0")</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-group mb-3">
+                            <label class="fw-semibold text-navy">Status:</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-@(Model.Status == "Pending" ? "warning" : 
+                                                       Model.Status == "Confirmed" ? "info" : 
+                                                       Model.Status == "Shipped" ? "primary" : 
+                                                       Model.Status == "Delivered" ? "success" : "danger") fs-6">
+                                    @Model.Status
+                                </span>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                            type="button" data-bs-toggle="dropdown">
+                                        Change Status
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('Pending')">Pending</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('Confirmed')">Confirmed</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('Shipped')">Shipped</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('Delivered')">Delivered</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus('Cancelled')">Cancel Order</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        @if (Model.DeliveryDate.HasValue)
+                        {
+                            <div class="info-group mb-3">
+                                <label class="fw-semibold text-navy">Delivery Date:</label>
+                                <p class="mb-0">@Model.DeliveryDate.Value.ToString("MMMM dd, yyyy")</p>
+                            </div>
+                        }
+                        
+                        <div class="info-group mb-3">
+                            <label class="fw-semibold text-navy">Order ID:</label>
+                            <p class="mb-0 font-monospace">#@Model.Id</p>
+                        </div>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="info-group">
+                        <label class="fw-semibold text-navy">Notes:</label>
+                        <p class="mb-0 text-muted">@Model.Notes</p>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-shopping-bag me-2 text-success"></i>Order Items (@Model.OrderItems.Count)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Unit Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="product-thumb me-3">
+                                                <img src="@item.Furniture.ImageUrl" alt="@item.Furniture.Name" class="img-fluid rounded">
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 text-navy">@item.Furniture.Name</h6>
+                                                <small class="text-muted">@item.Furniture.Category.Name</small>
+                                                @if (!string.IsNullOrEmpty(item.Furniture.Color) || !string.IsNullOrEmpty(item.Furniture.Material))
+                                                {
+                                                    <div class="mt-1">
+                                                        @if (!string.IsNullOrEmpty(item.Furniture.Color))
+                                                        {
+                                                            <small class="text-muted me-2">Color: @item.Furniture.Color</small>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(item.Furniture.Material))
+                                                        {
+                                                            <small class="text-muted">Material: @item.Furniture.Material</small>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-semibold">₹@item.UnitPrice.ToString("N0")</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@item.Quantity</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-navy">₹@item.TotalPrice.ToString("N0")</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <th colspan="3" class="text-end">Total Amount:</th>
+                                <th class="text-navy">₹@Model.TotalAmount.ToString("N0")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delivery Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-truck me-2 text-info"></i>Delivery Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-group mb-3">
+                            <label class="fw-semibold text-navy">Delivery Address:</label>
+                            <p class="mb-0">
+                                @if (!string.IsNullOrEmpty(Model.DeliveryAddress))
+                                {
+                                    <span>@Model.DeliveryAddress</span><br>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.DeliveryCity))
+                                {
+                                    <span>@Model.DeliveryCity</span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.DeliveryPostalCode))
+                                {
+                                    <span> - @Model.DeliveryPostalCode</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        @if (!string.IsNullOrEmpty(Model.ContactPhone))
+                        {
+                            <div class="info-group mb-3">
+                                <label class="fw-semibold text-navy">Contact Phone:</label>
+                                <p class="mb-0">@Model.ContactPhone</p>
+                            </div>
+                        }
+                        
+                        @if (Model.DeliveryDate.HasValue)
+                        {
+                            <div class="info-group mb-3">
+                                <label class="fw-semibold text-navy">Expected Delivery:</label>
+                                <p class="mb-0">@Model.DeliveryDate.Value.ToString("MMMM dd, yyyy")</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Customer Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2 text-primary"></i>Customer Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="customer-profile text-center mb-3">
+                    <div class="avatar-lg mx-auto mb-2">
+                        <span class="avatar-title bg-primary text-white rounded-circle">
+                            @Model.Customer.FirstName.Substring(0, 1)@Model.Customer.LastName.Substring(0, 1)
+                        </span>
+                    </div>
+                    <h6 class="text-navy">@Model.Customer.FirstName @Model.Customer.LastName</h6>
+                    <p class="text-muted mb-0">@Model.Customer.Email</p>
+                </div>
+                
+                <div class="customer-details">
+                    <div class="detail-item d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phone:</span>
+                        <span>@Model.Customer.Phone</span>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(Model.Customer.Address))
+                    {
+                        <div class="detail-item mb-2">
+                            <span class="text-muted">Address:</span>
+                            <p class="mb-0 small">
+                                @Model.Customer.Address<br>
+                                @if (!string.IsNullOrEmpty(Model.Customer.City))
+                                {
+                                    <span>@Model.Customer.City</span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Customer.PostalCode))
+                                {
+                                    <span> - @Model.Customer.PostalCode</span>
+                                }
+                            </p>
+                        </div>
+                    }
+                    
+                    <div class="detail-item d-flex justify-content-between mb-2">
+                        <span class="text-muted">Customer Since:</span>
+                        <span>@Model.Customer.CreatedAt.ToString("MMM yyyy")</span>
+                    </div>
+                    
+                    <div class="detail-item d-flex justify-content-between">
+                        <span class="text-muted">Total Orders:</span>
+                        <span class="badge bg-info">@Model.Customer.Orders.Count</span>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="@Url.Action("Details", "Customer", new { id = Model.CustomerId })" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-user me-2"></i>View Customer Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2 text-warning"></i>Order Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (Model.Status == "Pending")
+                    {
+                        <button type="button" class="btn btn-success" onclick="updateStatus('Confirmed')">
+                            <i class="fas fa-check me-2"></i>Confirm Order
+                        </button>
+                    }
+                    
+                    @if (Model.Status == "Confirmed")
+                    {
+                        <button type="button" class="btn btn-primary" onclick="updateStatus('Shipped')">
+                            <i class="fas fa-shipping-fast me-2"></i>Mark as Shipped
+                        </button>
+                    }
+                    
+                    @if (Model.Status == "Shipped")
+                    {
+                        <button type="button" class="btn btn-success" onclick="updateStatus('Delivered')">
+                            <i class="fas fa-check-double me-2"></i>Mark as Delivered
+                        </button>
+                    }
+                    
+                    <button type="button" class="btn btn-outline-info" onclick="printOrder()">
+                        <i class="fas fa-print me-2"></i>Print Order
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-secondary" onclick="sendNotification()">
+                        <i class="fas fa-envelope me-2"></i>Send Update
+                    </button>
+                    
+                    @if (Model.Status != "Delivered" && Model.Status != "Cancelled")
+                    {
+                        <hr>
+                        <button type="button" class="btn btn-outline-danger" onclick="updateStatus('Cancelled')">
+                            <i class="fas fa-times me-2"></i>Cancel Order
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Timeline -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2 text-info"></i>Order Timeline
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Order Placed</h6>
+                            <small class="text-muted">@Model.OrderDate.ToString("MMM dd, yyyy HH:mm")</small>
+                            <p class="small text-muted mb-0">Customer placed the order</p>
+                        </div>
+                    </div>
+                    
+                    @if (Model.Status != "Pending")
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Order Confirmed</h6>
+                                <small class="text-muted">Status updated</small>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (Model.Status == "Shipped" || Model.Status == "Delivered")
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Order Shipped</h6>
+                                <small class="text-muted">In transit</small>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (Model.Status == "Delivered")
+                    {
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Order Delivered</h6>
+                                <small class="text-muted">@Model.DeliveryDate?.ToString("MMM dd, yyyy")</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .product-thumb {
+            width: 60px;
+            height: 60px;
+        }
+
+        .product-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-lg {
+            width: 60px;
+            height: 60px;
+        }
+
+        .avatar-title {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .info-group {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 0.75rem;
+        }
+
+        .info-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .detail-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -2rem;
+            top: 0.25rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        @media print {
+            .btn, .dropdown, .page-header .col-md-6:last-child {
+                display: none !important;
+            }
+        }
+    </style>
+    
+    <script>
+        function updateStatus(newStatus) {
+            if (confirm(`Update order status to ${newStatus}?`)) {
+                fetch('@Url.Action("UpdateStatus", "Order")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=@Model.Id&status=${newStatus}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        AdminUtils.showNotification(`Order status updated to ${newStatus}`, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        AdminUtils.showNotification('Failed to update order status', 'error');
+                    }
+                })
+                .catch(error => {
+                    AdminUtils.showNotification('An error occurred', 'error');
+                });
+            }
+        }
+        
+        function printOrder() {
+            window.print();
+        }
+        
+        function sendNotification() {
+            const message = prompt('Enter notification message for customer:');
+            if (message) {
+                AdminUtils.showNotification('Notification sent to customer', 'success');
+            }
+        }
+    </script>
+}

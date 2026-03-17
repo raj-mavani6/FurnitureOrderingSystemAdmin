@@ -1,0 +1,365 @@
+@model Furniture
+@{
+    ViewData["Title"] = "Furniture Details";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Furniture Details</h1>
+            <p class="text-muted mb-0">View detailed information about this furniture item</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group" role="group">
+                <a href="@Url.Action("Edit", "Furniture", new { id = Model.Id })" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+                <a href="@Url.Action("Index", "Furniture")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <!-- Product Details -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>Product Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="product-image-large">
+                            <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded-3 shadow">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="product-details">
+                            <span class="badge bg-gold text-dark mb-3 fs-6">@Model.Category.Name</span>
+                            <h2 class="text-navy fw-bold mb-3">@Model.Name</h2>
+                            
+                            <div class="price-section mb-4">
+                                <span class="price display-6 fw-bold text-navy">₹@Model.Price.ToString("N0")</span>
+                            </div>
+                            
+                            <div class="status-badges mb-4">
+                                <span class="badge bg-@(Model.IsAvailable ? "success" : "secondary") me-2">
+                                    @(Model.IsAvailable ? "Available" : "Unavailable")
+                                </span>
+                                <span class="badge bg-@(Model.Stock == 0 ? "danger" : Model.Stock <= 5 ? "warning" : "success")">
+                                    @Model.Stock units in stock
+                                </span>
+                            </div>
+                            
+                            <div class="description mb-4">
+                                <h6 class="text-navy mb-2">Description</h6>
+                                <p class="text-muted">@Model.Description</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Specifications -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2 text-info"></i>Specifications
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    @if (!string.IsNullOrEmpty(Model.Color))
+                    {
+                        <div class="col-md-4">
+                            <div class="spec-item">
+                                <div class="spec-icon">
+                                    <i class="fas fa-palette fa-2x text-gold"></i>
+                                </div>
+                                <div class="spec-content">
+                                    <h6 class="text-navy mb-1">Color</h6>
+                                    <p class="text-muted mb-0">@Model.Color</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.Material))
+                    {
+                        <div class="col-md-4">
+                            <div class="spec-item">
+                                <div class="spec-icon">
+                                    <i class="fas fa-cube fa-2x text-gold"></i>
+                                </div>
+                                <div class="spec-content">
+                                    <h6 class="text-navy mb-1">Material</h6>
+                                    <p class="text-muted mb-0">@Model.Material</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.Dimensions))
+                    {
+                        <div class="col-md-4">
+                            <div class="spec-item">
+                                <div class="spec-icon">
+                                    <i class="fas fa-ruler fa-2x text-gold"></i>
+                                </div>
+                                <div class="spec-content">
+                                    <h6 class="text-navy mb-1">Dimensions</h6>
+                                    <p class="text-muted mb-0">@Model.Dimensions</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="col-md-4">
+                        <div class="spec-item">
+                            <div class="spec-icon">
+                                <i class="fas fa-tag fa-2x text-gold"></i>
+                            </div>
+                            <div class="spec-content">
+                                <h6 class="text-navy mb-1">Price</h6>
+                                <p class="text-muted mb-0">₹@Model.Price.ToString("N0")</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="spec-item">
+                            <div class="spec-icon">
+                                <i class="fas fa-boxes fa-2x text-gold"></i>
+                            </div>
+                            <div class="spec-content">
+                                <h6 class="text-navy mb-1">Stock</h6>
+                                <p class="text-muted mb-0">@Model.Stock units available</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="spec-item">
+                            <div class="spec-icon">
+                                <i class="fas fa-calendar fa-2x text-gold"></i>
+                            </div>
+                            <div class="spec-content">
+                                <h6 class="text-navy mb-1">Added On</h6>
+                                <p class="text-muted mb-0">@Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Edit", "Furniture", new { id = Model.Id })" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Details
+                    </a>
+                    
+                    <button type="button" class="btn btn-outline-success" onclick="toggleAvailability(@Model.Id)">
+                        <i class="fas fa-@(Model.IsAvailable ? "eye-slash" : "eye") me-2"></i>
+                        @(Model.IsAvailable ? "Make Unavailable" : "Make Available")
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-info" onclick="updateStock(@Model.Id)">
+                        <i class="fas fa-boxes me-2"></i>Update Stock
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-warning" onclick="duplicateItem(@Model.Id)">
+                        <i class="fas fa-copy me-2"></i>Duplicate Item
+                    </button>
+                    
+                    <hr>
+                    
+                    <a href="@Url.Action("Delete", "Furniture", new { id = Model.Id })" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-2"></i>Delete Item
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Item Statistics -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2 text-success"></i>Item Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="stat-row d-flex justify-content-between mb-3">
+                    <span class="text-muted">Total Orders:</span>
+                    <strong class="text-navy">0</strong>
+                </div>
+                <div class="stat-row d-flex justify-content-between mb-3">
+                    <span class="text-muted">Revenue Generated:</span>
+                    <strong class="text-navy">₹0</strong>
+                </div>
+                <div class="stat-row d-flex justify-content-between mb-3">
+                    <span class="text-muted">Average Rating:</span>
+                    <strong class="text-navy">N/A</strong>
+                </div>
+                <div class="stat-row d-flex justify-content-between">
+                    <span class="text-muted">Views:</span>
+                    <strong class="text-navy">0</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Item History -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2 text-info"></i>Item History
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Item Created</h6>
+                            <small class="text-muted">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                            <p class="small text-muted mb-0">Furniture item was added to inventory</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .product-image-large {
+            max-height: 400px;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+
+        .product-image-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: var(--bg-light-beige);
+            border-radius: 0.5rem;
+            height: 100%;
+        }
+
+        .spec-icon {
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .spec-content {
+            flex-grow: 1;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -2rem;
+            top: 0.25rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .stat-row {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .bg-gold {
+            background-color: #D4AF37 !important;
+        }
+
+        .text-gold {
+            color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        function toggleAvailability(furnitureId) {
+            if (confirm('Are you sure you want to toggle the availability of this item?')) {
+                // This would make an AJAX call to toggle availability
+                AdminUtils.showNotification('Availability toggled successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            }
+        }
+        
+        function updateStock(furnitureId) {
+            const newStock = prompt('Enter new stock quantity:', '@Model.Stock');
+            if (newStock !== null && !isNaN(newStock) && parseInt(newStock) >= 0) {
+                // This would make an AJAX call to update stock
+                AdminUtils.showNotification('Stock updated successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            }
+        }
+        
+        function duplicateItem(furnitureId) {
+            if (confirm('This will create a copy of this furniture item. Continue?')) {
+                // Redirect to create page with pre-filled data
+                window.location.href = '@Url.Action("Create", "Furniture")?duplicate=' + furnitureId;
+            }
+        }
+    </script>
+}

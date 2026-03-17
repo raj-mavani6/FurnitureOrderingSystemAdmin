@@ -1,0 +1,594 @@
+@model List<Customer>
+@{
+    ViewData["Title"] = "Customer Management";
+    var searchTerm = ViewBag.SearchTerm as string;
+    var isActive = ViewBag.IsActive as bool?;
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Customer Management</h1>
+            <p class="text-muted mb-0">Manage customer accounts and information</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-success" onclick="exportCustomers('csv')">
+                    <i class="fas fa-download me-2"></i>Export CSV
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="exportCustomers('pdf')">
+                    <i class="fas fa-file-pdf me-2"></i>Export PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card bg-primary">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count</h4>
+                <p class="stat-label">Total Customers</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-success">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(c => c.IsActive)</h4>
+                <p class="stat-label">Active Customers</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-warning">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(c => !c.IsActive)</h4>
+                <p class="stat-label">Inactive Customers</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-user-times"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-info">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Where(c => c.Orders.Any()).Count()</h4>
+                <p class="stat-label">Customers with Orders</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search Customers</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by name, email, phone..." value="@searchTerm">
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="isActive" class="form-select">
+                    <option value="">All Customers</option>
+                    <option value="true" selected="@(isActive == true)">Active Only</option>
+                    <option value="false" selected="@(isActive == false)">Inactive Only</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a href="@Url.Action("Index", "Customer")" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Customers List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            Customers (@Model.Count)
+        </h5>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" id="gridView">
+                <i class="fas fa-th"></i> Grid
+            </button>
+            <button class="btn btn-outline-secondary btn-sm active" id="listView">
+                <i class="fas fa-list"></i> List
+            </button>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <!-- List View (Default) -->
+            <div id="listViewContainer">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="selectAll">
+                                    </div>
+                                </th>
+                                <th>Customer</th>
+                                <th>Contact</th>
+                                <th>Location</th>
+                                <th>Orders</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var customer in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input customer-checkbox" type="checkbox" value="@customer.Id">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-3">
+                                                <span class="avatar-title bg-primary text-white rounded-circle">
+                                                    @customer.FirstName.Substring(0, 1)@customer.LastName.Substring(0, 1)
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 text-navy">@customer.FirstName @customer.LastName</h6>
+                                                <small class="text-muted">ID: #@customer.Id</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="mb-1">@customer.Email</div>
+                                            <small class="text-muted">@customer.Phone</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(customer.City))
+                                        {
+                                            <div>@customer.City</div>
+                                            @if (!string.IsNullOrEmpty(customer.PostalCode))
+                                            {
+                                                <small class="text-muted">@customer.PostalCode</small>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not provided</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@customer.Orders.Count orders</span>
+                                    </td>
+                                    <td>
+                                        <div>@customer.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                        <small class="text-muted">@customer.CreatedAt.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@(customer.IsActive ? "success" : "secondary")">
+                                            @(customer.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("Details", "Customer", new { id = customer.Id })" 
+                                               class="btn btn-outline-info btn-sm" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-@(customer.IsActive ? "warning" : "success") btn-sm" 
+                                                    onclick="toggleCustomerStatus(@customer.Id)" 
+                                                    title="@(customer.IsActive ? "Deactivate" : "Activate")">
+                                                <i class="fas fa-@(customer.IsActive ? "user-times" : "user-check")"></i>
+                                            </button>
+                                            <a href="@Url.Action("Delete", "Customer", new { id = customer.Id })" 
+                                               class="btn btn-outline-danger btn-sm" title="Delete Customer">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Grid View (Hidden by default) -->
+            <div id="gridViewContainer" style="display: none;">
+                <div class="row g-4">
+                    @foreach (var customer in Model)
+                    {
+                        <div class="col-xl-4 col-lg-6">
+                            <div class="customer-card h-100">
+                                <div class="customer-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-md me-3">
+                                                <span class="avatar-title bg-primary text-white rounded-circle">
+                                                    @customer.FirstName.Substring(0, 1)@customer.LastName.Substring(0, 1)
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 text-navy">@customer.FirstName @customer.LastName</h6>
+                                                <small class="text-muted">Customer #@customer.Id</small>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-@(customer.IsActive ? "success" : "secondary")">
+                                            @(customer.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="customer-info">
+                                    <div class="info-item mb-2">
+                                        <i class="fas fa-envelope text-gold me-2"></i>
+                                        <span class="small">@customer.Email</span>
+                                    </div>
+                                    <div class="info-item mb-2">
+                                        <i class="fas fa-phone text-gold me-2"></i>
+                                        <span class="small">@customer.Phone</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(customer.City))
+                                    {
+                                        <div class="info-item mb-2">
+                                            <i class="fas fa-map-marker-alt text-gold me-2"></i>
+                                            <span class="small">@customer.City @customer.PostalCode</span>
+                                        </div>
+                                    }
+                                    <div class="info-item mb-3">
+                                        <i class="fas fa-calendar text-gold me-2"></i>
+                                        <span class="small">Joined @customer.CreatedAt.ToString("MMM yyyy")</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="customer-stats mb-3">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="stat-item">
+                                                <h6 class="mb-0 text-navy">@customer.Orders.Count</h6>
+                                                <small class="text-muted">Orders</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="stat-item">
+                                                <h6 class="mb-0 text-navy">₹@customer.Orders.Sum(o => o.TotalAmount).ToString("N0")</h6>
+                                                <small class="text-muted">Total Spent</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="customer-actions">
+                                    <div class="d-flex gap-2">
+                                        <a href="@Url.Action("Details", "Customer", new { id = customer.Id })" 
+                                           class="btn btn-outline-primary btn-sm flex-fill">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
+                                        <button type="button" class="btn btn-outline-@(customer.IsActive ? "warning" : "success") btn-sm" 
+                                                onclick="toggleCustomerStatus(@customer.Id)">
+                                            <i class="fas fa-@(customer.IsActive ? "user-times" : "user-check")"></i>
+                                        </button>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="sendNotification(@customer.Id)">
+                                                        <i class="fas fa-envelope me-2"></i>Send Message
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="@Url.Action("Delete", "Customer", new { id = customer.Id })">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <!-- Bulk Actions -->
+            <div class="bulk-actions mt-3" style="display: none;">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted">
+                        <span id="selectedCount">0</span> customers selected
+                    </span>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="bulkActivate()">
+                            <i class="fas fa-user-check me-1"></i>Activate
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="bulkDeactivate()">
+                            <i class="fas fa-user-times me-1"></i>Deactivate
+                        </button>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="bulkExport()">
+                            <i class="fas fa-download me-1"></i>Export Selected
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="bulkDelete()">
+                            <i class="fas fa-trash me-1"></i>Delete Selected
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No customers found</h5>
+                <p class="text-muted">
+                    @if (!string.IsNullOrEmpty(searchTerm) || isActive.HasValue)
+                    {
+                        <span>No customers match your search criteria.</span>
+                    }
+                    else
+                    {
+                        <span>Customers will appear here once they register on your website.</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+        }
+
+        .avatar-md {
+            width: 48px;
+            height: 48px;
+        }
+
+        .avatar-title {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .customer-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .customer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .customer-header {
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .customer-stats {
+            background: var(--bg-light-beige);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .stat-item {
+            padding: 0.5rem;
+        }
+
+        .bulk-actions {
+            background: var(--bg-light-beige);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-content {
+            flex-grow: 1;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+
+        .text-gold {
+            color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        // View toggle functionality
+        document.getElementById('listView').addEventListener('click', function() {
+            document.getElementById('listViewContainer').style.display = 'block';
+            document.getElementById('gridViewContainer').style.display = 'none';
+            
+            this.classList.add('active');
+            document.getElementById('gridView').classList.remove('active');
+        });
+        
+        document.getElementById('gridView').addEventListener('click', function() {
+            document.getElementById('listViewContainer').style.display = 'none';
+            document.getElementById('gridViewContainer').style.display = 'block';
+            
+            this.classList.add('active');
+            document.getElementById('listView').classList.remove('active');
+        });
+
+        // Select all functionality
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.customer-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActions();
+        });
+        
+        // Individual checkbox functionality
+        document.querySelectorAll('.customer-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateBulkActions);
+        });
+        
+        function updateBulkActions() {
+            const selectedCheckboxes = document.querySelectorAll('.customer-checkbox:checked');
+            const bulkActions = document.querySelector('.bulk-actions');
+            const selectedCount = document.getElementById('selectedCount');
+            
+            if (selectedCheckboxes.length > 0) {
+                bulkActions.style.display = 'block';
+                selectedCount.textContent = selectedCheckboxes.length;
+            } else {
+                bulkActions.style.display = 'none';
+            }
+        }
+        
+        function toggleCustomerStatus(customerId) {
+            if (confirm('Toggle customer status?')) {
+                fetch('@Url.Action("ToggleStatus", "Customer")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=${customerId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        AdminUtils.showNotification('Customer status updated', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        AdminUtils.showNotification('Failed to update customer status', 'error');
+                    }
+                })
+                .catch(error => {
+                    AdminUtils.showNotification('An error occurred', 'error');
+                });
+            }
+        }
+        
+        function sendNotification(customerId) {
+            const message = prompt('Enter message for customer:');
+            if (message) {
+                AdminUtils.showNotification('Message sent to customer', 'success');
+            }
+        }
+        
+        function bulkActivate() {
+            const selectedCustomers = getSelectedCustomers();
+            if (selectedCustomers.length === 0) return;
+            
+            if (confirm(`Activate ${selectedCustomers.length} selected customers?`)) {
+                AdminUtils.showNotification(`${selectedCustomers.length} customers activated`, 'success');
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+        
+        function bulkDeactivate() {
+            const selectedCustomers = getSelectedCustomers();
+            if (selectedCustomers.length === 0) return;
+            
+            if (confirm(`Deactivate ${selectedCustomers.length} selected customers?`)) {
+                AdminUtils.showNotification(`${selectedCustomers.length} customers deactivated`, 'success');
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+        
+        function bulkExport() {
+            const selectedCustomers = getSelectedCustomers();
+            if (selectedCustomers.length === 0) return;
+            
+            AdminUtils.showNotification(`Exporting ${selectedCustomers.length} customers...`, 'info');
+        }
+        
+        function bulkDelete() {
+            const selectedCustomers = getSelectedCustomers();
+            if (selectedCustomers.length === 0) return;
+            
+            if (confirm(`Delete ${selectedCustomers.length} selected customers? This action cannot be undone.`)) {
+                AdminUtils.showNotification(`${selectedCustomers.length} customers deleted`, 'success');
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+        
+        function getSelectedCustomers() {
+            return Array.from(document.querySelectorAll('.customer-checkbox:checked')).map(cb => cb.value);
+        }
+        
+        function exportCustomers(format) {
+            AdminUtils.showNotification(`Exporting customers in ${format.toUpperCase()} format...`, 'info');
+        }
+    </script>
+}

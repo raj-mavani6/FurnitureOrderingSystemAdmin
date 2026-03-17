@@ -1,0 +1,199 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FurnitureHub Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-navy: #1A3A52;
+            --secondary-gold: #D4AF37;
+            --bg-soft-white: #F5F5F5;
+            --bg-light-beige: #FAF8F3;
+            --text-charcoal: #2C2C2C;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-light-beige) 0%, var(--bg-soft-white) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .error-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .error-icon {
+            font-size: 5rem;
+            color: #dc3545;
+            margin-bottom: 2rem;
+        }
+
+        .error-title {
+            color: var(--primary-navy);
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            color: var(--text-charcoal);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-navy);
+            border-color: var(--primary-navy);
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0f2a3a;
+            border-color: #0f2a3a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 58, 82, 0.3);
+        }
+
+        .btn-outline-secondary {
+            color: var(--text-charcoal);
+            border-color: #6c757d;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            transform: translateY(-2px);
+        }
+
+        .error-details {
+            background: var(--bg-light-beige);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .security-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+
+        .security-info .fas {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="error-container">
+                    <div class="error-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    
+                    <h1 class="error-title display-6">Access Denied</h1>
+                    
+                    <div class="error-message">
+                        <p class="lead">
+                            You don't have permission to access this resource.
+                        </p>
+                        <p>
+                            This area is restricted to authorized administrators only. 
+                            If you believe you should have access, please contact your system administrator.
+                        </p>
+                    </div>
+                    
+                    <div class="error-details">
+                        <h6 class="text-danger mb-2">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Security Notice
+                        </h6>
+                        <p class="mb-0 small text-muted">
+                            This access attempt has been logged for security purposes. 
+                            Unauthorized access attempts may result in account suspension.
+                        </p>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-primary me-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Login with Different Account
+                        </a>
+                        
+                        <button type="button" class="btn btn-outline-secondary" onclick="goBack()">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Go Back
+                        </button>
+                    </div>
+                    
+                    <div class="security-info">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <small class="text-muted">
+                                Need help? Contact support at 
+                                <a href="mailto:admin@furniturehub.com" class="text-decoration-none">admin@furniturehub.com</a>
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Panel Branding -->
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="d-flex align-items-center justify-content-center text-muted">
+                            <i class="fas fa-couch me-2" style="color: var(--secondary-gold);"></i>
+                            <span>FurnitureHub Admin Panel</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '@Url.Action("Login", "Account")';
+            }
+        }
+        
+        // Auto-redirect to login after 30 seconds
+        setTimeout(() => {
+            if (confirm('You will be redirected to the login page. Continue?')) {
+                window.location.href = '@Url.Action("Login", "Account")';
+            }
+        }, 30000);
+        
+        // Log access attempt (in a real application, this would be server-side)
+        console.log('Access denied at:', new Date().toISOString());
+    </script>
+</body>
+</html>

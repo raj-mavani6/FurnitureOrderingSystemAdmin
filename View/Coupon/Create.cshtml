@@ -1,0 +1,164 @@
+@model Coupon
+@{
+    ViewData["Title"] = "Create Coupon";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Create Coupon</h1>
+            <p class="text-muted mb-0">Create a new discount coupon</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Coupons
+            </a>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Create" method="post">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Basic Info Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2 text-gold"></i>Basic Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CouponCode" class="form-label">Coupon Code <span class="text-danger">*</span></label>
+                            <input asp-for="CouponCode" class="form-control text-uppercase" placeholder="e.g., SAVE20">
+                            <span asp-validation-for="CouponCode" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="UsageLimit" class="form-label">Usage Limit <span class="text-danger">*</span></label>
+                            <input asp-for="UsageLimit" type="number" min="1" max="100" class="form-control">
+                            <small class="text-muted">Times each customer can use</small>
+                            <span asp-validation-for="UsageLimit" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Description" class="form-label">Description <span class="text-danger">*</span></label>
+                            <textarea asp-for="Description" class="form-control" rows="2" placeholder="Describe the coupon"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discount Settings Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-percent me-2 text-gold"></i>Discount Settings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="DiscountType" class="form-label">Discount Type <span class="text-danger">*</span></label>
+                            <select asp-for="DiscountType" class="form-select" id="discountType">
+                                <option value="Percentage">Percentage (%)</option>
+                                <option value="Fixed">Fixed Amount (₹)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="DiscountValue" class="form-label">Discount Value <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input asp-for="DiscountValue" type="number" step="0.01" min="0" class="form-control" id="discountValue">
+                                <span class="input-group-text" id="discountSuffix">%</span>
+                            </div>
+                            <span asp-validation-for="DiscountValue" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3" id="maxDiscountGroup">
+                            <label asp-for="MaxDiscountAmount" class="form-label">Max Discount (₹)</label>
+                            <input asp-for="MaxDiscountAmount" type="number" step="0.01" min="0" class="form-control" placeholder="Optional">
+                            <small class="text-muted">For percentage discounts</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="MinimumOrderAmount" class="form-label">Minimum Order Amount (₹)</label>
+                            <input asp-for="MinimumOrderAmount" type="number" step="0.01" min="0" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validity Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar me-2 text-gold"></i>Validity Period
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="StartDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                            <input asp-for="StartDate" type="datetime-local" class="form-control">
+                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ExpiryDate" class="form-label">Expiry Date <span class="text-danger">*</span></label>
+                            <input asp-for="ExpiryDate" type="datetime-local" class="form-control">
+                            <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Status Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-toggle-on me-2 text-gold"></i>Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox">
+                        <label asp-for="IsActive" class="form-check-label">Active</label>
+                    </div>
+                    <small class="text-muted">Enable to make coupon available for use</small>
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Create Coupon
+                        </button>
+                        <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('discountType').addEventListener('change', function() {
+            const suffix = document.getElementById('discountSuffix');
+            const maxGroup = document.getElementById('maxDiscountGroup');
+            
+            if (this.value === 'Percentage') {
+                suffix.textContent = '%';
+                maxGroup.style.display = 'block';
+            } else {
+                suffix.textContent = '₹';
+                maxGroup.style.display = 'none';
+            }
+        });
+    </script>
+}

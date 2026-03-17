@@ -1,0 +1,122 @@
+@model PaymentTransaction
+@{
+    ViewData["Title"] = "Edit Transaction";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Edit Transaction</h1>
+            <p class="text-muted mb-0">Update: @Model.TransactionId</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "PaymentTransaction")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Transactions
+            </a>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="TransactionId" />
+    <input type="hidden" asp-for="OrderId" />
+    <input type="hidden" asp-for="Amount" />
+    <input type="hidden" asp-for="PaymentMethod" />
+    <input type="hidden" asp-for="TransactionDate" />
+    <input type="hidden" asp-for="CreatedAt" />
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Transaction Info (Read Only) -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2 text-gold"></i>Transaction Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted">Transaction ID</label>
+                            <p class="form-control-plaintext fw-bold text-primary">@Model.TransactionId</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted">Amount</label>
+                            <p class="form-control-plaintext fw-bold text-success">₹@Model.Amount.ToString("N2")</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-muted">Payment Method</label>
+                            <p class="form-control-plaintext"><span class="badge bg-info">@Model.PaymentMethod</span></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Order Number</label>
+                            <p class="form-control-plaintext">@Model.Order?.OrderNumber</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Transaction Date</label>
+                            <p class="form-control-plaintext">@Model.TransactionDate.ToString("MMM dd, yyyy HH:mm")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editable Fields -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2 text-gold"></i>Update Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PaymentStatus" class="form-label">Payment Status <span class="text-danger">*</span></label>
+                            <select asp-for="PaymentStatus" class="form-select">
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Failed">Failed</option>
+                                <option value="Refunded">Refunded</option>
+                            </select>
+                            <span asp-validation-for="PaymentStatus" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Remarks" class="form-label">Remarks</label>
+                            <textarea asp-for="Remarks" class="form-control" rows="3" placeholder="Add any notes about this transaction"></textarea>
+                            <span asp-validation-for="Remarks" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Actions Card -->
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-save me-2"></i>Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <a href="@Url.Action("Details", "PaymentTransaction", new { id = Model.Id })" class="btn btn-outline-info">
+                            <i class="fas fa-eye me-2"></i>View Details
+                        </a>
+                        <a href="@Url.Action("Index", "PaymentTransaction")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

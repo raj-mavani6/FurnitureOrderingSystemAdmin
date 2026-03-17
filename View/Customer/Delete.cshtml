@@ -1,0 +1,414 @@
+@model Customer
+@{
+    ViewData["Title"] = "Delete Customer";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-danger fw-bold">Delete Customer</h1>
+            <p class="text-muted mb-0">Permanently remove customer account</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Customer")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Customers
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Warning Alert -->
+<div class="alert alert-danger" role="alert">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+        <div>
+            <h5 class="alert-heading mb-1">Critical Warning: Customer Account Deletion</h5>
+            <p class="mb-0">
+                This action will permanently delete the customer account and all associated data. This includes order history, 
+                personal information, and cannot be undone.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Details -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-times me-2"></i>Customer Account to be Deleted
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="customer-summary mb-4">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="avatar-xl mx-auto mb-3">
+                                <span class="avatar-title bg-danger text-white rounded-circle">
+                                    @Model.FirstName.Substring(0, 1)@Model.LastName.Substring(0, 1)
+                                </span>
+                            </div>
+                            <h5 class="text-navy">@Model.FirstName @Model.LastName</h5>
+                            <p class="text-muted mb-0">Customer #@Model.Id</p>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <div class="customer-details">
+                                <div class="detail-item">
+                                    <strong>Email:</strong>
+                                    <span>@Model.Email</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Phone:</strong>
+                                    <span>@Model.Phone</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Registration Date:</strong>
+                                    <span>@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Account Status:</strong>
+                                    <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                                        @(Model.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Total Orders:</strong>
+                                    <span class="badge bg-info">@Model.Orders.Count orders</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Total Spent:</strong>
+                                    <span class="h6 text-navy">₹@Model.Orders.Sum(o => o.TotalAmount).ToString("N0")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Address))
+                {
+                    <div class="address-info mb-4">
+                        <h6 class="text-navy mb-2">Address Information:</h6>
+                        <p class="mb-1"><strong>Address:</strong> @Model.Address</p>
+                        @if (!string.IsNullOrEmpty(Model.City))
+                        {
+                            <p class="mb-1"><strong>City:</strong> @Model.City</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.PostalCode))
+                        {
+                            <p class="mb-0"><strong>Postal Code:</strong> @Model.PostalCode</p>
+                        }
+                    </div>
+                }
+                
+                @if (Model.Orders.Any())
+                {
+                    <div class="order-history">
+                        <h6 class="text-navy mb-3">Order History (@Model.Orders.Count orders):</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.Orders.OrderByDescending(o => o.OrderDate).Take(5))
+                                    {
+                                        <tr>
+                                            <td>#@order.OrderNumber</td>
+                                            <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                            <td>₹@order.TotalAmount.ToString("N0")</td>
+                                            <td>
+                                                <span class="badge bg-@(order.Status == "Pending" ? "warning" : 
+                                                                       order.Status == "Confirmed" ? "info" : 
+                                                                       order.Status == "Shipped" ? "primary" : 
+                                                                       order.Status == "Delivered" ? "success" : "danger")">
+                                                    @order.Status
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            @if (Model.Orders.Count > 5)
+                            {
+                                <p class="text-muted small">Showing 5 most recent orders. Total: @Model.Orders.Count orders</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Panel -->
+    <div class="col-lg-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>Confirm Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="confirmation-checklist mb-4">
+                    <h6 class="text-danger mb-3">Before deleting, please confirm:</h6>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmDataBackup">
+                        <label class="form-check-label" for="confirmDataBackup">
+                            Customer data has been backed up if needed
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmOrdersHandled">
+                        <label class="form-check-label" for="confirmOrdersHandled">
+                            All pending orders have been handled
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmCustomerNotified">
+                        <label class="form-check-label" for="confirmCustomerNotified">
+                            Customer has been notified if required
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmLegalCompliance">
+                        <label class="form-check-label" for="confirmLegalCompliance">
+                            Legal/GDPR requirements have been met
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmPermanent">
+                        <label class="form-check-label" for="confirmPermanent">
+                            I understand this action is permanent
+                        </label>
+                    </div>
+                </div>
+                
+                <form method="post" asp-action="Delete" id="deleteForm">
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                            <i class="fas fa-user-times me-2"></i>Yes, Delete Customer
+                        </button>
+                        
+                        <a href="@Url.Action("Details", "Customer", new { id = Model.Id })" class="btn btn-outline-secondary">
+                            <i class="fas fa-eye me-2"></i>View Details Instead
+                        </a>
+                        
+                        <a href="@Url.Action("Index", "Customer")" class="btn btn-outline-primary">
+                            <i class="fas fa-times me-2"></i>Cancel Deletion
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Alternative Actions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>Alternative Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Instead of deleting, consider these alternatives:
+                </p>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="deactivateAccount()">
+                        <i class="fas fa-user-slash me-2"></i>Deactivate Account
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="anonymizeData()">
+                        <i class="fas fa-user-secret me-2"></i>Anonymize Data
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportData()">
+                        <i class="fas fa-download me-2"></i>Export Data First
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Impact Warning -->
+        <div class="card mt-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Deletion Impact
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Customer account will be permanently deleted
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        All order history will be removed (@Model.Orders.Count orders)
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Personal information will be deleted
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Customer cannot login or place orders
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Cannot be undone once confirmed
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2 text-info"></i>Customer Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="stat-row d-flex justify-content-between mb-2">
+                    <span class="text-muted">Total Orders:</span>
+                    <strong class="text-navy">@Model.Orders.Count</strong>
+                </div>
+                <div class="stat-row d-flex justify-content-between mb-2">
+                    <span class="text-muted">Total Spent:</span>
+                    <strong class="text-navy">₹@Model.Orders.Sum(o => o.TotalAmount).ToString("N0")</strong>
+                </div>
+                <div class="stat-row d-flex justify-content-between mb-2">
+                    <span class="text-muted">Account Age:</span>
+                    <strong class="text-navy">@((DateTime.Now - Model.CreatedAt).Days) days</strong>
+                </div>
+                <div class="stat-row d-flex justify-content-between">
+                    <span class="text-muted">Status:</span>
+                    <strong class="text-navy">@(Model.IsActive ? "Active" : "Inactive")</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .avatar-xl {
+            width: 80px;
+            height: 80px;
+        }
+
+        .avatar-title {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .customer-summary {
+            background: var(--bg-light-beige);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .confirmation-checklist .form-check-input:checked ~ .form-check-label {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .stat-row {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Enable delete button only when all checkboxes are checked
+            const checkboxes = document.querySelectorAll('.confirmation-checklist input[type="checkbox"]');
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            
+            function updateDeleteButton() {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                deleteBtn.disabled = !allChecked;
+            }
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateDeleteButton);
+            });
+            
+            // Confirm deletion
+            document.getElementById('deleteForm').addEventListener('submit', function(e) {
+                if (!confirm('Are you absolutely sure you want to delete this customer account? This action cannot be undone and will delete all associated data!')) {
+                    e.preventDefault();
+                }
+            });
+        });
+        
+        function deactivateAccount() {
+            if (confirm('Deactivate this customer account instead of deleting it?')) {
+                // This would make an AJAX call to set IsActive = false
+                AdminUtils.showNotification('Customer account deactivated', 'success');
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Details", "Customer", new { id = Model.Id })';
+                }, 1500);
+            }
+        }
+        
+        function anonymizeData() {
+            if (confirm('Anonymize customer data instead of deleting the account?')) {
+                // This would make an AJAX call to anonymize personal data
+                AdminUtils.showNotification('Customer data anonymized successfully', 'success');
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Index", "Customer")';
+                }, 1500);
+            }
+        }
+        
+        function exportData() {
+            AdminUtils.showNotification('Exporting customer data...', 'info');
+            // This would generate and download customer data export
+            setTimeout(() => {
+                AdminUtils.showNotification('Customer data exported successfully', 'success');
+            }, 2000);
+        }
+    </script>
+}

@@ -1,0 +1,237 @@
+@model Combo
+@{
+    ViewData["Title"] = "Combo Details";
+    // Calculate total price from all ComboItems
+    var originalPrice = Model.ComboItems.Sum(ci => (ci.Furniture?.Price ?? 0) * ci.Quantity);
+    var discountAmount = Model.DiscountedPrice;
+    var payPrice = originalPrice - discountAmount;
+    var savingsPercent = originalPrice > 0 ? (discountAmount / originalPrice * 100) : 0;
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Combo Details</h1>
+            <p class="text-muted mb-0">View combo information and included items</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Edit", "Combo", new { id = Model.Id })" class="btn btn-primary me-2">
+                <i class="fas fa-edit me-2"></i>Edit Combo
+            </a>
+            <a href="@Url.Action("Index", "Combo")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Combos
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Combo Info Card -->
+        <div class="card mb-4">
+            <div class="card-body p-0">
+                <div class="combo-header position-relative">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="@Model.Name" class="w-100" style="height: 250px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="no-image d-flex align-items-center justify-content-center" style="height: 250px; background: #f8f9fa;">
+                            <i class="fas fa-box-open fa-5x text-muted"></i>
+                        </div>
+                    }
+                    <span class="badge bg-@(Model.IsActive ? "success" : "secondary") position-absolute top-0 end-0 m-3 fs-6">
+                        @(Model.IsActive ? "Available" : "Unavailable")
+                    </span>
+                    @if (savingsPercent > 0)
+                    {
+                        <span class="badge bg-danger position-absolute top-0 start-0 m-3 fs-6">
+                            @savingsPercent.ToString("0")% OFF
+                        </span>
+                    }
+                </div>
+                
+                <div class="p-4">
+                    <h3 class="text-navy mb-2">@Model.Name</h3>
+                    <p class="text-muted mb-4">@(Model.Description ?? "No description available")</p>
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="info-box text-center p-3 rounded bg-light">
+                                <small class="text-muted d-block">Original Price</small>
+                                <span class="h5 text-decoration-line-through text-muted">₹@originalPrice.ToString("N0")</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="info-box text-center p-3 rounded bg-warning bg-opacity-10">
+                                <small class="text-muted d-block">Discounted Price</small>
+                                <span class="h5 text-warning">₹@discountAmount.ToString("N0")</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="info-box text-center p-3 rounded bg-success bg-opacity-10">
+                                <small class="text-muted d-block">Pay Price</small>
+                                <span class="h4 text-success">₹@payPrice.ToString("N0")</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="info-box text-center p-3 rounded bg-danger bg-opacity-10">
+                                <small class="text-muted d-block">Discounted %</small>
+                                <span class="h5 text-danger">@savingsPercent.ToString("0")%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Included Items Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-couch me-2 text-gold"></i>Included Items (@Model.ComboItems.Count)
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ComboItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="@item.Furniture?.ImageUrl" alt="@item.Furniture?.Name" 
+                                                 class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            <div>
+                                                <h6 class="mb-0 text-navy">@item.Furniture?.Name</h6>
+                                                <small class="text-muted">@item.Furniture?.Color • @item.Furniture?.Material</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">@item.Furniture?.Category?.Name</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">@item.Quantity</span>
+                                    </td>
+                                    <td class="text-end">₹@item.Furniture?.Price.ToString("N0")</td>
+                                    <td class="text-end fw-bold">₹@((item.Furniture?.Price ?? 0 * item.Quantity).ToString("N0"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="4" class="text-end">Total Items Value:</th>
+                                <th class="text-end">₹@Model.ComboItems.Sum(ci => (ci.Furniture?.Price ?? 0) * ci.Quantity).ToString("N0")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Quick Info Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2 text-info"></i>Quick Info
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="info-row d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted">Combo ID:</span>
+                    <strong>#@Model.Id</strong>
+                </div>
+                <div class="info-row d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted">Status:</span>
+                    <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                        @(Model.IsActive ? "Available" : "Unavailable")
+                    </span>
+                </div>
+                <div class="info-row d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted">Items Count:</span>
+                    <strong>@Model.ComboItems.Count</strong>
+                </div>
+                <div class="info-row d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted">Created:</span>
+                    <strong>@Model.CreatedAt.ToString("MMM dd, yyyy")</strong>
+                </div>
+                <div class="info-row d-flex justify-content-between">
+                    <span class="text-muted">Discount:</span>
+                    <strong class="text-success">@savingsPercent.ToString("0")%</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions Card -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2 text-gold"></i>Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Edit", "Combo", new { id = Model.Id })" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Combo
+                    </a>
+                    <button type="button" class="btn btn-outline-@(Model.IsActive ? "warning" : "success")" 
+                            onclick="toggleComboStatus(@Model.Id)">
+                        <i class="fas fa-@(Model.IsActive ? "pause" : "play") me-2"></i>
+                        @(Model.IsActive ? "Mark Unavailable" : "Mark Available")
+                    </button>
+                    <a href="@Url.Action("Delete", "Combo", new { id = Model.Id })" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-2"></i>Delete Combo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .text-gold {
+            color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        function toggleComboStatus(comboId) {
+            if (confirm('Toggle combo availability?')) {
+                fetch('@Url.Action("ToggleStatus", "Combo")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=${comboId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        AdminUtils.showNotification('Combo status updated', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        AdminUtils.showNotification('Failed to update combo status', 'error');
+                    }
+                })
+                .catch(error => {
+                    AdminUtils.showNotification('An error occurred', 'error');
+                });
+            }
+        }
+    </script>
+}

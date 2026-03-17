@@ -1,0 +1,313 @@
+@model List<Review>
+@{
+    ViewData["Title"] = "Reviews Management";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Reviews Management</h1>
+            <p class="text-muted mb-0">Monitor and manage customer reviews</p>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="stat-card bg-primary">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.TotalReviews</h4>
+                <p class="stat-label">Total Reviews</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-warning">
+            <div class="stat-content">
+                <h4 class="stat-number">@(((double)ViewBag.AverageRating).ToString("F1"))</h4>
+                <p class="stat-label">Avg Rating</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-success">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.FiveStarCount</h4>
+                <p class="stat-label">5 Stars</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-info">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.FourStarCount</h4>
+                <p class="stat-label">4 Stars</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-star-half-alt"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-secondary">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.ThreeStarCount</h4>
+                <p class="stat-label">3 Stars</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-star-half-alt"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-danger">
+            <div class="stat-content">
+                <h4 class="stat-number">@(ViewBag.TwoStarCount + ViewBag.OneStarCount)</h4>
+                <p class="stat-label">1-2 Stars</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-filter me-2"></i>Filters & Search
+        </h5>
+        <button class="btn btn-sm btn-danger" onclick="deleteSelected()">
+            <i class="fas fa-trash me-1"></i>Delete Selected
+        </button>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input type="text" name="searchTerm" class="form-control" 
+                       value="@ViewBag.SearchTerm" placeholder="Customer, product, or comment...">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Rating</label>
+                <select name="rating" class="form-select">
+                    <option value="">All Ratings</option>
+                    <option value="5" selected="@(ViewBag.SelectedRating == 5)">5 Stars</option>
+                    <option value="4" selected="@(ViewBag.SelectedRating == 4)">4 Stars</option>
+                    <option value="3" selected="@(ViewBag.SelectedRating == 3)">3 Stars</option>
+                    <option value="2" selected="@(ViewBag.SelectedRating == 2)">2 Stars</option>
+                    <option value="1" selected="@(ViewBag.SelectedRating == 1)">1 Star</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="approved" selected="@(ViewBag.SelectedStatus == "approved")">Approved</option>
+                    <option value="hidden" selected="@(ViewBag.SelectedStatus == "hidden")">Hidden</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Sort By</label>
+                <select name="sortBy" class="form-select">
+                    <option value="date_desc" selected="@(ViewBag.SortBy == "date_desc")">Newest First</option>
+                    <option value="date_asc" selected="@(ViewBag.SortBy == "date_asc")">Oldest First</option>
+                    <option value="rating_desc" selected="@(ViewBag.SortBy == "rating_desc")">Highest Rating</option>
+                    <option value="rating_asc" selected="@(ViewBag.SortBy == "rating_asc")">Lowest Rating</option>
+                    <option value="customer" selected="@(ViewBag.SortBy == "customer")">Customer Name</option>
+                    <option value="furniture" selected="@(ViewBag.SortBy == "furniture")">Product Name</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-search me-1"></i>Apply
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reviews Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-comments me-2 text-gold"></i>All Reviews (@Model.Count)
+        </h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="50">
+                                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+                            </th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Rating</th>
+                            <th>Comment</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th width="120">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var review in Model)
+                        {
+                            <tr id="review-@review.Id">
+                                <td>
+                                    <input type="checkbox" class="review-checkbox" value="@review.Id">
+                                </td>
+                                <td>
+                                    <strong>@review.Customer?.FirstName @review.Customer?.LastName</strong><br>
+                                    <small class="text-muted">@review.Customer?.Email</small>
+                                </td>
+                                <td>
+                                    <strong>@review.Furniture?.Name</strong><br>
+                                    <small class="text-muted">@review.Furniture?.Category?.Name</small>
+                                </td>
+                                <td>
+                                    <div class="rating-stars">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= review.Rating)
+                                            {
+                                                <i class="fas fa-star text-warning"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="far fa-star text-muted"></i>
+                                            }
+                                        }
+                                    </div>
+                                    <small class="text-muted">(@review.Rating/5)</small>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(review.Comment))
+                                    {
+                                        <span class="fst-italic">
+                                            @(review.Comment.Length > 80 ? review.Comment.Substring(0, 80) + "..." : review.Comment)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No comment</span>
+                                    }
+                                </td>
+                                <td>
+                                    <small>@review.ReviewDate.ToString("MMM dd, yyyy")</small><br>
+                                    <small class="text-muted">@review.ReviewDate.ToString("hh:mm tt")</small>
+                                </td>
+                                <td>
+                                    @if (review.IsApproved)
+                                    {
+                                        <span class="badge bg-success">Approved</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Hidden</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-warning" onclick="toggleApproval(@review.Id)" title="Toggle Visibility">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteReview(@review.Id)" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-star fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No Reviews Found</h5>
+                <p class="text-muted">There are no reviews matching your criteria.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            document.querySelectorAll('.review-checkbox').forEach(cb => cb.checked = selectAll.checked);
+        }
+
+        function toggleApproval(id) {
+            fetch('/Review/ToggleApproval/' + id, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        AdminUtils.showNotification(data.message, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        AdminUtils.showNotification(data.message, 'error');
+                    }
+                })
+                .catch(() => AdminUtils.showNotification('Failed to update status', 'error'));
+        }
+
+        function deleteReview(id) {
+            if (confirm('Delete this review?')) {
+                fetch('/Review/Delete/' + id, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            AdminUtils.showNotification(data.message, 'success');
+                            document.getElementById('review-' + id).remove();
+                        } else {
+                            AdminUtils.showNotification(data.message, 'error');
+                        }
+                    })
+                    .catch(() => AdminUtils.showNotification('Failed to delete', 'error'));
+            }
+        }
+
+        function deleteSelected() {
+            const checkboxes = document.querySelectorAll('.review-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one review to delete');
+                return;
+            }
+            if (confirm(`Delete ${checkboxes.length} review(s)?`)) {
+                const ids = Array.from(checkboxes).map(cb => cb.value).join(',');
+                fetch('/Review/DeleteMultiple', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'ids=' + encodeURIComponent(ids)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        AdminUtils.showNotification(data.message, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        AdminUtils.showNotification(data.message, 'error');
+                    }
+                })
+                .catch(() => AdminUtils.showNotification('Failed to delete', 'error'));
+            }
+        }
+    </script>
+}

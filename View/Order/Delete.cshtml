@@ -1,0 +1,342 @@
+@model Order
+@{
+    ViewData["Title"] = "Delete Order";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-danger fw-bold">Delete Order</h1>
+            <p class="text-muted mb-0">Permanently remove this order</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Order")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Orders
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Warning Alert -->
+<div class="alert alert-danger" role="alert">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+        <div>
+            <h5 class="alert-heading mb-1">Warning: Permanent Deletion</h5>
+            <p class="mb-0">
+                This action cannot be undone. Once deleted, this order and all associated data will be permanently removed from the system.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-trash me-2"></i>Order to be Deleted
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="order-summary mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <strong>Order Number:</strong>
+                                <span class="h5 text-navy">#@Model.OrderNumber</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <strong>Customer:</strong>
+                                <span>@Model.Customer.FirstName @Model.Customer.LastName</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <strong>Email:</strong>
+                                <span>@Model.Customer.Email</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <strong>Phone:</strong>
+                                <span>@Model.Customer.Phone</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <strong>Order Date:</strong>
+                                <span>@Model.OrderDate.ToString("MMM dd, yyyy HH:mm")</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <strong>Total Amount:</strong>
+                                <span class="h5 text-navy">₹@Model.TotalAmount.ToString("N0")</span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <strong>Status:</strong>
+                                <span class="badge bg-@(Model.Status == "Pending" ? "warning" : 
+                                                       Model.Status == "Confirmed" ? "info" : 
+                                                       Model.Status == "Shipped" ? "primary" : 
+                                                       Model.Status == "Delivered" ? "success" : "danger")">
+                                    @Model.Status
+                                </span>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <strong>Items Count:</strong>
+                                <span>@Model.OrderItems.Count items</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Items -->
+                <div class="order-items">
+                    <h6 class="text-navy mb-3">Order Items:</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@item.Furniture.ImageUrl" alt="@item.Furniture.Name" 
+                                                     class="me-2 rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                                <div>
+                                                    <div class="fw-semibold">@item.Furniture.Name</div>
+                                                    <small class="text-muted">@item.Furniture.Category.Name</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@item.Quantity</td>
+                                        <td>₹@item.UnitPrice.ToString("N0")</td>
+                                        <td>₹@item.TotalPrice.ToString("N0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.DeliveryAddress))
+                {
+                    <div class="delivery-info mt-4">
+                        <h6 class="text-navy mb-2">Delivery Information:</h6>
+                        <p class="mb-1"><strong>Address:</strong> @Model.DeliveryAddress</p>
+                        @if (!string.IsNullOrEmpty(Model.DeliveryCity))
+                        {
+                            <p class="mb-1"><strong>City:</strong> @Model.DeliveryCity @Model.DeliveryPostalCode</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.ContactPhone))
+                        {
+                            <p class="mb-0"><strong>Contact:</strong> @Model.ContactPhone</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Panel -->
+    <div class="col-lg-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>Confirm Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="confirmation-checklist mb-4">
+                    <h6 class="text-danger mb-3">Before deleting, please confirm:</h6>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmCustomerNotified">
+                        <label class="form-check-label" for="confirmCustomerNotified">
+                            Customer has been notified if necessary
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmRefundProcessed">
+                        <label class="form-check-label" for="confirmRefundProcessed">
+                            Refund has been processed if applicable
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmInventoryUpdated">
+                        <label class="form-check-label" for="confirmInventoryUpdated">
+                            Inventory has been updated if needed
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmPermanent">
+                        <label class="form-check-label" for="confirmPermanent">
+                            I understand this action is permanent
+                        </label>
+                    </div>
+                </div>
+                
+                <form method="post" asp-action="Delete" id="deleteForm">
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                            <i class="fas fa-trash me-2"></i>Yes, Delete Permanently
+                        </button>
+                        
+                        <a href="@Url.Action("Details", "Order", new { id = Model.Id })" class="btn btn-outline-secondary">
+                            <i class="fas fa-eye me-2"></i>View Details Instead
+                        </a>
+                        
+                        <a href="@Url.Action("Index", "Order")" class="btn btn-outline-primary">
+                            <i class="fas fa-times me-2"></i>Cancel Deletion
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Alternative Actions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>Alternative Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Instead of deleting, consider these alternatives:
+                </p>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="cancelOrder()">
+                        <i class="fas fa-times me-2"></i>Cancel Order
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="archiveOrder()">
+                        <i class="fas fa-archive me-2"></i>Archive Order
+                    </button>
+                    
+                    <a href="@Url.Action("Details", "Order", new { id = Model.Id })" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit me-2"></i>Update Status Instead
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Impact Warning -->
+        <div class="card mt-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Deletion Impact
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Order will be removed from customer history
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        All order items will be deleted
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Financial records may be affected
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Cannot be undone once confirmed
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .confirmation-checklist .form-check-input:checked ~ .form-check-label {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .order-summary {
+            background: var(--bg-light-beige);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Enable delete button only when all checkboxes are checked
+            const checkboxes = document.querySelectorAll('.confirmation-checklist input[type="checkbox"]');
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            
+            function updateDeleteButton() {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                deleteBtn.disabled = !allChecked;
+            }
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateDeleteButton);
+            });
+            
+            // Confirm deletion
+            document.getElementById('deleteForm').addEventListener('submit', function(e) {
+                if (!confirm('Are you absolutely sure you want to delete this order? This action cannot be undone!')) {
+                    e.preventDefault();
+                }
+            });
+        });
+        
+        function cancelOrder() {
+            if (confirm('Cancel this order instead of deleting it?')) {
+                // This would make an AJAX call to set Status = "Cancelled"
+                AdminUtils.showNotification('Order cancelled successfully', 'success');
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Details", "Order", new { id = Model.Id })';
+                }, 1500);
+            }
+        }
+        
+        function archiveOrder() {
+            if (confirm('Archive this order instead of deleting it?')) {
+                // This would make an AJAX call to archive the order
+                AdminUtils.showNotification('Order archived successfully', 'success');
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Index", "Order")';
+                }, 1500);
+            }
+        }
+    </script>
+}

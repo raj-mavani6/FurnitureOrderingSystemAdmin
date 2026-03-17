@@ -1,0 +1,296 @@
+@model Combo
+@{
+    ViewData["Title"] = "Delete Combo";
+    var savings = Model.OriginalPrice - Model.DiscountedPrice;
+    var savingsPercent = Model.OriginalPrice > 0 ? (savings / Model.OriginalPrice * 100) : 0;
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-danger fw-bold">Delete Combo</h1>
+            <p class="text-muted mb-0">Permanently remove combo offer</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Combo")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Combos
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Warning Alert -->
+<div class="alert alert-danger" role="alert">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+        <div>
+            <h5 class="alert-heading mb-1">Warning: Combo Deletion</h5>
+            <p class="mb-0">
+                This action will permanently delete the combo offer. This cannot be undone.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-box-open me-2"></i>Combo to be Deleted
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="combo-summary mb-4">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="combo-image-preview mx-auto mb-3">
+                                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                                {
+                                    <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded">
+                                }
+                                else
+                                {
+                                    <div class="no-image">
+                                        <i class="fas fa-box-open fa-4x text-muted"></i>
+                                    </div>
+                                }
+                            </div>
+                            <h5 class="text-navy">@Model.Name</h5>
+                            <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                                @(Model.IsActive ? "Available" : "Unavailable")
+                            </span>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <div class="combo-details">
+                                <div class="detail-item">
+                                    <strong>Combo ID:</strong>
+                                    <span>#@Model.Id</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Name:</strong>
+                                    <span>@Model.Name</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Original Price:</strong>
+                                    <span class="text-decoration-line-through">₹@Model.OriginalPrice.ToString("N0")</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Discounted Price:</strong>
+                                    <span class="text-success fw-bold">₹@Model.DiscountedPrice.ToString("N0")</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Discount:</strong>
+                                    <span class="badge bg-danger">@savingsPercent.ToString("0")% OFF</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Items:</strong>
+                                    <span class="badge bg-info">@Model.ComboItems.Count items</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Created:</strong>
+                                    <span>@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                @if (Model.ComboItems.Any())
+                {
+                    <div class="items-list">
+                        <h6 class="text-danger mb-3">
+                            <i class="fas fa-couch me-2"></i>Included Items (@Model.ComboItems.Count):
+                        </h6>
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm">
+                                <thead style="position: sticky; top: 0; background: white;">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-end">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ComboItems)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="@item.Furniture?.ImageUrl" alt="@item.Furniture?.Name" 
+                                                         class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                                    <span>@item.Furniture?.Name</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td class="text-end">₹@item.Furniture?.Price.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Panel -->
+    <div class="col-lg-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>Confirm Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="confirmation-checklist mb-4">
+                    <h6 class="text-danger mb-3">Before deleting, confirm:</h6>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmNoOrders">
+                        <label class="form-check-label" for="confirmNoOrders">
+                            No pending orders use this combo
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmNoRecovery">
+                        <label class="form-check-label" for="confirmNoRecovery">
+                            I understand this cannot be undone
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete">
+                        <label class="form-check-label" for="confirmDelete">
+                            I want to permanently delete this combo
+                        </label>
+                    </div>
+                </div>
+                
+                <form method="post" asp-action="Delete" id="deleteForm">
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                            <i class="fas fa-trash me-2"></i>Yes, Delete Combo
+                        </button>
+                        
+                        <a href="@Url.Action("Edit", "Combo", new { id = Model.Id })" class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Instead
+                        </a>
+                        
+                        <a href="@Url.Action("Index", "Combo")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Impact Warning -->
+        <div class="card mt-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Deletion Impact
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Combo offer will be permanently deleted
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Included furniture items remain unaffected
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Cannot be recovered after deletion
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .combo-image-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: var(--bg-light-beige);
+        }
+        
+        .combo-image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .no-image {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .combo-summary {
+            background: var(--bg-light-beige);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+        
+        .confirmation-checklist .form-check-input:checked ~ .form-check-label {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.confirmation-checklist input[type="checkbox"]');
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            
+            function updateDeleteButton() {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                deleteBtn.disabled = !allChecked;
+            }
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateDeleteButton);
+            });
+            
+            document.getElementById('deleteForm').addEventListener('submit', function(e) {
+                if (!confirm('Are you absolutely sure you want to delete this combo? This action cannot be undone!')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,447 @@
+@model FurnitureOrderingSystemAdmin.Models.Furniture
+@{
+    ViewData["Title"] = "Edit Furniture";
+    var categories = ViewBag.Categories as List<FurnitureOrderingSystemAdmin.Models.Category>;
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Edit Furniture</h1>
+            <p class="text-muted mb-0">Update furniture details</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Furniture")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2 text-primary"></i>Update Furniture Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="Edit">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CreatedAt" />
+                    
+                    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+                    
+                    <div class="row">
+                        <!-- Basic Information -->
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Name" class="form-label fw-semibold">Furniture Name *</label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter furniture name">
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CategoryId" class="form-label fw-semibold">Category *</label>
+                            <select asp-for="CategoryId" class="form-select">
+                                <option value="">Select Category</option>
+                                @if (categories != null)
+                                {
+                                    @foreach (var category in categories)
+                                    {
+                                        @if (Model.CategoryId == category.Id)
+                                        {
+                                            <option value="@category.Id" selected>@category.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@category.Id">@category.Name</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="4" 
+                                  placeholder="Enter detailed description of the furniture"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Price" class="form-label fw-semibold">Price (₹) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input asp-for="Price" type="number" step="0.01" class="form-control" 
+                                       placeholder="0.00">
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Stock" class="form-label fw-semibold">Stock Quantity *</label>
+                            <input asp-for="Stock" type="number" min="0" class="form-control" 
+                                   placeholder="Enter stock quantity">
+                            <span asp-validation-for="Stock" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="ImageUrl" class="form-label fw-semibold">Image URL</label>
+                        <input asp-for="ImageUrl" type="url" class="form-control" 
+                               placeholder="https://example.com/image.jpg" id="imageUrl">
+                        <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Enter a valid image URL. You can use image hosting services like Unsplash, Imgur, etc.
+                        </div>
+                    </div>
+                    
+                    <!-- Specifications -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Color" class="form-label fw-semibold">Color</label>
+                            <input asp-for="Color" class="form-control" placeholder="e.g., Brown, White">
+                            <span asp-validation-for="Color" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Material" class="form-label fw-semibold">Material</label>
+                            <input asp-for="Material" class="form-control" placeholder="e.g., Wood, Fabric">
+                            <span asp-validation-for="Material" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Dimensions" class="form-label fw-semibold">Dimensions</label>
+                            <input asp-for="Dimensions" class="form-control" placeholder="e.g., 200x90x85 cm">
+                            <span asp-validation-for="Dimensions" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Availability -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input asp-for="IsAvailable" class="form-check-input">
+                            <label asp-for="IsAvailable" class="form-check-label fw-semibold">
+                                Available for Sale
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Uncheck this if you want to temporarily disable this item from being sold.
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Update Furniture
+                        </button>
+                        <a href="@Url.Action("Details", "Furniture", new { id = Model.Id })" class="btn btn-outline-info">
+                            <i class="fas fa-eye me-2"></i>View Details
+                        </a>
+                        <a href="@Url.Action("Index", "Furniture")" class="btn btn-outline-danger">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Preview Panel -->
+    <div class="col-lg-4">
+        <div class="card sticky-top">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-eye me-2 text-info"></i>Live Preview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="preview-container">
+                    <!-- Image Preview -->
+                    <div class="preview-image mb-3">
+                        <img id="previewImg" src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded">
+                    </div>
+                    
+                    <!-- Details Preview -->
+                    <div class="preview-details">
+                        <span class="badge bg-secondary mb-2" id="previewCategory">
+                            @(categories?.FirstOrDefault(c => c.Id == Model.CategoryId)?.Name ?? "Category")
+                        </span>
+                        <h5 class="preview-title text-navy" id="previewName">@Model.Name</h5>
+                        <p class="text-muted small" id="previewDescription">@Model.Description</p>
+                        
+                        <div class="preview-specs mb-3">
+                            <div class="spec-item" id="previewColor" style="display: @(string.IsNullOrEmpty(Model.Color) ? "none" : "flex");">
+                                <i class="fas fa-palette text-gold me-2"></i>
+                                <span class="spec-value">@Model.Color</span>
+                            </div>
+                            <div class="spec-item" id="previewMaterial" style="display: @(string.IsNullOrEmpty(Model.Material) ? "none" : "flex");">
+                                <i class="fas fa-cube text-gold me-2"></i>
+                                <span class="spec-value">@Model.Material</span>
+                            </div>
+                            <div class="spec-item" id="previewDimensions" style="display: @(string.IsNullOrEmpty(Model.Dimensions) ? "none" : "flex");">
+                                <i class="fas fa-ruler text-gold me-2"></i>
+                                <span class="spec-value">@Model.Dimensions</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="preview-price">
+                                <span class="h4 text-navy fw-bold" id="previewPrice">₹@Model.Price.ToString("N0")</span>
+                            </div>
+                            <div class="preview-stock">
+                                <span class="badge bg-@(Model.Stock == 0 ? "danger" : Model.Stock <= 5 ? "warning" : "success")" id="previewStock">
+                                    @Model.Stock in stock
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <span class="badge bg-@(Model.IsAvailable ? "success" : "secondary")" id="previewAvailability">
+                                @(Model.IsAvailable ? "Available" : "Unavailable")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- History Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-history me-2 text-info"></i>Item History
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="history-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Created:</strong>
+                        <span>@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                    </div>
+                </div>
+                <div class="history-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Item ID:</strong>
+                        <span>#@Model.Id</span>
+                    </div>
+                </div>
+                <div class="history-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Current Status:</strong>
+                        <span class="badge bg-@(Model.IsAvailable ? "success" : "secondary")">
+                            @(Model.IsAvailable ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Details", "Furniture", new { id = Model.Id })" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-eye me-2"></i>View Details
+                    </a>
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="duplicateItem()">
+                        <i class="fas fa-copy me-2"></i>Duplicate Item
+                    </button>
+                    <a href="@Url.Action("Delete", "Furniture", new { id = Model.Id })" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash me-2"></i>Delete Item
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .page-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .preview-image {
+            height: 200px;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .history-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .sticky-top {
+            top: 2rem;
+        }
+
+        .bg-gold {
+            background-color: #D4AF37 !important;
+        }
+
+        .text-gold {
+            color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        // Real-time preview updates
+        function updatePreview() {
+            // Name
+            const name = document.querySelector('input[name="Name"]').value || 'Furniture Name';
+            document.getElementById('previewName').textContent = name;
+            
+            // Category
+            const categorySelect = document.querySelector('select[name="CategoryId"]');
+            const categoryText = categorySelect.options[categorySelect.selectedIndex].text || 'Category';
+            document.getElementById('previewCategory').textContent = categoryText;
+            
+            // Description
+            const description = document.querySelector('textarea[name="Description"]').value || 'Description will appear here...';
+            document.getElementById('previewDescription').textContent = description.substring(0, 100) + (description.length > 100 ? '...' : '');
+            
+            // Price
+            const price = document.querySelector('input[name="Price"]').value || '0';
+            document.getElementById('previewPrice').textContent = '₹' + parseFloat(price).toLocaleString('en-IN');
+            
+            // Stock
+            const stock = document.querySelector('input[name="Stock"]').value || '0';
+            const stockBadge = document.getElementById('previewStock');
+            stockBadge.textContent = stock + ' in stock';
+            
+            // Update stock badge color
+            const stockNum = parseInt(stock);
+            stockBadge.className = 'badge ' + (stockNum === 0 ? 'bg-danger' : stockNum <= 5 ? 'bg-warning' : 'bg-success');
+            
+            // Specifications
+            updateSpec('Color', 'previewColor');
+            updateSpec('Material', 'previewMaterial');
+            updateSpec('Dimensions', 'previewDimensions');
+            
+            // Availability
+            const isAvailable = document.querySelector('input[name="IsAvailable"]').checked;
+            const availabilityBadge = document.getElementById('previewAvailability');
+            availabilityBadge.textContent = isAvailable ? 'Available' : 'Unavailable';
+            availabilityBadge.className = 'badge ' + (isAvailable ? 'bg-success' : 'bg-secondary');
+        }
+        
+        function updateSpec(fieldName, elementId) {
+            const value = document.querySelector(`input[name="${fieldName}"]`).value;
+            const element = document.getElementById(elementId);
+            if (value) {
+                element.style.display = 'flex';
+                element.querySelector('.spec-value').textContent = value;
+            } else {
+                element.style.display = 'none';
+            }
+        }
+        
+        // Image URL validation and preview
+        document.getElementById('imageUrl').addEventListener('input', function() {
+            const url = this.value;
+            const img = document.getElementById('previewImg');
+            
+            if (url) {
+                // Test if image loads
+                const testImg = new Image();
+                testImg.onload = function() {
+                    img.src = url;
+                };
+                testImg.onerror = function() {
+                    img.src = 'https://via.placeholder.com/300x200?text=Invalid+Image+URL';
+                };
+                testImg.src = url;
+            }
+            
+            updatePreview();
+        });
+        
+        // Add event listeners for real-time preview
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('change', updatePreview);
+            });
+        });
+        
+        // Duplicate item function
+        function duplicateItem() {
+            if (confirm('This will create a copy of this furniture item. Continue?')) {
+                // Get current form data
+                const name = document.querySelector('input[name="Name"]').value;
+                const categoryId = document.querySelector('select[name="CategoryId"]').value;
+                const description = document.querySelector('textarea[name="Description"]').value;
+                const price = document.querySelector('input[name="Price"]').value;
+                const imageUrl = document.querySelector('input[name="ImageUrl"]').value;
+                const color = document.querySelector('input[name="Color"]').value;
+                const material = document.querySelector('input[name="Material"]').value;
+                const dimensions = document.querySelector('input[name="Dimensions"]').value;
+                
+                // Build query string
+                const params = new URLSearchParams({
+                    name: name + ' (Copy)',
+                    categoryId: categoryId,
+                    description: description,
+                    price: price,
+                    imageUrl: imageUrl,
+                    color: color,
+                    material: material,
+                    dimensions: dimensions,
+                    stock: '0'
+                });
+                
+                // Redirect to create page with pre-filled data
+                window.location.href = '@Url.Action("Create", "Furniture")?' + params.toString();
+            }
+        }
+    </script>
+    
+    <!-- Client-side validation scripts -->
+    <partial name="_ValidationScriptsPartial" />
+}

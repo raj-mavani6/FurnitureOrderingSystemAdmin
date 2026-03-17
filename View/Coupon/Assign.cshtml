@@ -1,0 +1,172 @@
+@{
+    ViewData["Title"] = "Assign Coupons";
+    var customers = ViewBag.Customers as List<Customer> ?? new List<Customer>();
+    var coupons = ViewBag.Coupons as List<Coupon> ?? new List<Coupon>();
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Assign Coupons</h1>
+            <p class="text-muted mb-0">Assign coupons to customers</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Coupons
+            </a>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Assign" method="post">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Coupon Selection -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-ticket-alt me-2 text-gold"></i>Select Coupon
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (coupons.Any())
+                    {
+                        <div class="row g-3">
+                            @foreach (var coupon in coupons)
+                            {
+                                <div class="col-md-6">
+                                    <div class="form-check coupon-option p-3 border rounded">
+                                        <input class="form-check-input" type="radio" name="couponId" 
+                                               id="coupon_@coupon.Id" value="@coupon.Id" required>
+                                        <label class="form-check-label w-100" for="coupon_@coupon.Id">
+                                            <strong class="text-primary">@coupon.CouponCode</strong>
+                                            <span class="badge bg-@(coupon.DiscountType == "Percentage" ? "info" : "success") float-end">
+                                                @(coupon.DiscountType == "Percentage" ? $"{coupon.DiscountValue}%" : $"₹{coupon.DiscountValue}")
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">@coupon.Description</small>
+                                            <br>
+                                            <small class="text-muted">Expires: @coupon.ExpiryDate.ToString("MMM dd, yyyy")</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No active coupons available for assignment.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Customer Selection -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2 text-gold"></i>Select Customers
+                    </h5>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="selectAll">Select All</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAll">Deselect All</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Search -->
+                    <div class="mb-3">
+                        <input type="text" id="customerSearch" class="form-control" placeholder="Search customers...">
+                    </div>
+                    
+                    @if (customers.Any())
+                    {
+                        <div class="customer-list" style="max-height: 400px; overflow-y: auto;">
+                            @foreach (var customer in customers)
+                            {
+                                <div class="form-check customer-item p-2 border-bottom" 
+                                     data-name="@customer.FirstName.ToLower() @customer.LastName.ToLower() @customer.Email.ToLower()">
+                                    <input class="form-check-input customer-checkbox" type="checkbox" 
+                                           name="customerIds" id="customer_@customer.Id" value="@customer.Id">
+                                    <label class="form-check-label w-100" for="customer_@customer.Id">
+                                        <strong>@customer.FirstName @customer.LastName</strong>
+                                        <span class="text-muted float-end">@customer.Email</span>
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No active customers found.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Summary & Actions -->
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-tag me-2"></i>Assignment Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="text-muted">Selected Customers:</span>
+                        <strong id="selectedCount">0</strong>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" id="assignBtn" disabled>
+                            <i class="fas fa-user-tag me-2"></i>Assign Coupon
+                        </button>
+                        <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        const checkboxes = document.querySelectorAll('.customer-checkbox');
+        const selectedCount = document.getElementById('selectedCount');
+        const assignBtn = document.getElementById('assignBtn');
+        const searchInput = document.getElementById('customerSearch');
+        
+        function updateCount() {
+            const count = document.querySelectorAll('.customer-checkbox:checked').length;
+            selectedCount.textContent = count;
+            assignBtn.disabled = count === 0;
+        }
+        
+        checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+        
+        document.getElementById('selectAll').addEventListener('click', function() {
+            document.querySelectorAll('.customer-item:not(.d-none) .customer-checkbox').forEach(cb => cb.checked = true);
+            updateCount();
+        });
+        
+        document.getElementById('deselectAll').addEventListener('click', function() {
+            checkboxes.forEach(cb => cb.checked = false);
+            updateCount();
+        });
+        
+        searchInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase();
+            document.querySelectorAll('.customer-item').forEach(item => {
+                const name = item.dataset.name;
+                item.classList.toggle('d-none', !name.includes(term));
+            });
+        });
+    </script>
+}

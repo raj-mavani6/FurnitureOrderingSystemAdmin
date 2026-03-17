@@ -1,0 +1,346 @@
+@model Combo
+@{
+    ViewData["Title"] = "Edit Combo";
+    var furnitures = ViewBag.Furnitures as List<Furniture> ?? new List<Furniture>();
+
+    var selectedIds = Model.ComboItems.Select(ci => ci.FurnitureId).ToList();
+    var categories = furnitures.Select(f => f.Category?.Name).Where(n => !string.IsNullOrEmpty(n)).Distinct().OrderBy(n => n).ToList();
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Edit Combo</h1>
+            <p class="text-muted mb-0">Update combo information and items</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Combo")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Combos
+            </a>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Edit" method="post" id="comboForm">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="CreatedAt" />
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Basic Info Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2 text-gold"></i>Basic Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Name" class="form-label">Combo Name <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter combo name">
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" 
+                                      placeholder="Enter combo description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="ImageUrl" class="form-label">Image URL</label>
+                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
+                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="OriginalPrice" class="form-label">Original Price (₹) <span class="text-muted">(Auto)</span></label>
+                            <input asp-for="OriginalPrice" type="number" step="0.01" class="form-control bg-light" placeholder="0.00" id="originalPrice" readonly>
+                            <small class="text-muted">Total of all products</small>
+                            <span asp-validation-for="OriginalPrice" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="DiscountedPrice" class="form-label">Discounted Price (₹) <span class="text-danger">*</span></label>
+                            <input asp-for="DiscountedPrice" type="number" step="0.01" class="form-control" placeholder="0.00" id="discountedPrice">
+                            <small class="text-muted">Discount amount</small>
+                            <span asp-validation-for="DiscountedPrice" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Pay Price (₹) <span class="text-muted">(Auto)</span></label>
+                            <input type="text" class="form-control bg-success bg-opacity-10 text-success fw-bold" id="payPrice" readonly>
+                            <small class="text-muted">Final price to pay</small>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox">
+                                <label asp-for="IsActive" class="form-check-label">Available for purchase</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Furniture Selection Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-couch me-2 text-gold"></i>Select Furniture Items
+                    </h5>
+                </div>
+                <div class="card-body">
+
+                    
+                    <div class="alert alert-info py-2 mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Select furniture items to include in this combo.
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <input type="text" id="furnitureSearch" class="form-control form-control-sm" placeholder="Search product name...">
+                        </div>
+                        <div class="col-md-4">
+                            <select id="categoryFilter" class="form-select form-select-sm">
+                                <option value="">All Categories</option>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat">@cat</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" id="minPrice" class="form-control" placeholder="Min">
+                                <span class="input-group-text">-</span>
+                                <input type="number" id="maxPrice" class="form-control" placeholder="Max">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="furniture-list" style="max-height: 500px; overflow-y: auto;">
+                        @foreach (var furniture in furnitures)
+                        {
+                            var isSelected = selectedIds.Contains(furniture.Id);
+                            var comboItem = Model.ComboItems.FirstOrDefault(ci => ci.FurnitureId == furniture.Id);
+                            var qty = comboItem?.Quantity ?? 1;
+                            
+                            <div class="furniture-item d-flex align-items-center p-3 border-bottom" 
+                                 data-name="@furniture.Name.ToLower()" 
+                                 data-category="@(furniture.Category?.Name ?? "")" 
+                                 data-price="@furniture.Price">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input furniture-checkbox" type="checkbox" 
+                                           name="furnitureIds" value="@furniture.Id" 
+                                           data-price="@furniture.Price" id="furniture_@furniture.Id"
+                                           @(isSelected ? "checked" : "")>
+                                </div>
+                                <img src="@furniture.ImageUrl" alt="@furniture.Name" 
+                                     class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 text-navy">@furniture.Name</h6>
+                                    <small class="text-muted">@furniture.Category?.Name • ₹@furniture.Price.ToString("N0")</small>
+                                </div>
+                                <div class="quantity-input" style="@(isSelected ? "" : "display: none;")">
+                                    <label class="form-label small mb-1">Qty</label>
+                                    <input type="number" name="quantities" class="form-control form-control-sm" 
+                                           value="@qty" min="1" max="10" style="width: 70px;" data-furniture="@furniture.Id">
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Summary Card -->
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calculator me-2"></i>Combo Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="text-muted">Items Selected:</span>
+                        <strong id="selectedCount">@Model.ComboItems.Count</strong>
+                    </div>
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="text-muted">Items Total:</span>
+                        <strong id="itemsTotal">₹@Model.ComboItems.Sum(ci => (ci.Furniture?.Price ?? 0) * ci.Quantity).ToString("N0")</strong>
+                    </div>
+                    <hr>
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="text-muted">Original Price:</span>
+                        <strong id="displayOriginal">₹@Model.OriginalPrice.ToString("N0")</strong>
+                    </div>
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="text-muted">Discounted Price:</span>
+                        <strong class="text-warning" id="displayDiscounted">₹@Model.DiscountedPrice.ToString("N0")</strong>
+                    </div>
+                    <div class="summary-row d-flex justify-content-between mb-2">
+                        <span class="text-muted">Pay Price:</span>
+                        <strong class="text-success h5 mb-0" id="displayPayPrice">₹@((Model.OriginalPrice - Model.DiscountedPrice).ToString("N0"))</strong>
+                    </div>
+                    <div class="summary-row d-flex justify-content-between">
+                        <span class="text-muted">Savings:</span>
+                        <strong class="text-danger" id="displaySavings">₹@Model.DiscountedPrice.ToString("N0")</strong>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <a href="@Url.Action("Delete", "Combo", new { id = Model.Id })" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i>Delete Combo
+                        </a>
+                        <a href="@Url.Action("Index", "Combo")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <style>
+        .furniture-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .summary-row {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+        
+        .text-gold {
+            color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.furniture-checkbox');
+            const originalPriceInput = document.getElementById('originalPrice');
+            const discountedPriceInput = document.getElementById('discountedPrice');
+            
+            function updateSummary() {
+                let itemsTotal = 0;
+                let selectedCount = 0;
+                
+                checkboxes.forEach(checkbox => {
+                    const furnitureItem = checkbox.closest('.furniture-item');
+                    const quantityInput = furnitureItem.querySelector('.quantity-input');
+                    
+                    if (checkbox.checked) {
+                        selectedCount++;
+                        quantityInput.style.display = 'block';
+                        const price = parseFloat(checkbox.dataset.price) || 0;
+                        const qty = parseInt(furnitureItem.querySelector('input[name="quantities"]').value) || 1;
+                        itemsTotal += price * qty;
+                    } else {
+                        quantityInput.style.display = 'none';
+                    }
+                });
+                
+                document.getElementById('selectedCount').textContent = selectedCount;
+                document.getElementById('itemsTotal').textContent = '₹' + itemsTotal.toLocaleString('en-IN');
+                
+                // Auto-set Original Price from items total
+                originalPriceInput.value = itemsTotal.toFixed(2);
+                
+                updatePriceSummary();
+            }
+            
+            function updatePriceSummary() {
+                const original = parseFloat(originalPriceInput.value) || 0;
+                const discountAmount = parseFloat(discountedPriceInput.value) || 0;
+                
+                // Calculate Pay Price (Total - Discount)
+                const payPrice = Math.max(0, original - discountAmount);
+                const savingsPercent = original > 0 ? (discountAmount / original * 100) : 0;
+                
+                // Update Pay Price Input
+                const payPriceInput = document.getElementById('payPrice');
+                if (payPriceInput) payPriceInput.value = payPrice.toFixed(2);
+                
+                // Update Summary Card
+                document.getElementById('displayOriginal').textContent = '₹' + original.toLocaleString('en-IN');
+                document.getElementById('displayDiscounted').textContent = '₹' + discountAmount.toLocaleString('en-IN');
+                
+                const displayPayPrice = document.getElementById('displayPayPrice');
+                if (displayPayPrice) displayPayPrice.textContent = '₹' + payPrice.toLocaleString('en-IN');
+                
+                document.getElementById('displaySavings').textContent = `₹${discountAmount.toLocaleString('en-IN')} (${savingsPercent.toFixed(0)}%)`;
+            }
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSummary);
+            });
+            
+            document.querySelectorAll('input[name="quantities"]').forEach(input => {
+                input.addEventListener('change', updateSummary);
+            });
+            
+            originalPriceInput.addEventListener('input', updatePriceSummary);
+            discountedPriceInput.addEventListener('input', updatePriceSummary);
+            
+            // Initial update - calculate from current selections
+            updateSummary();
+            
+            // Filter Logic
+            const searchInput = document.getElementById('furnitureSearch');
+            const categorySelect = document.getElementById('categoryFilter');
+            const minPriceInput = document.getElementById('minPrice');
+            const maxPriceInput = document.getElementById('maxPrice');
+            const furnitureItems = document.querySelectorAll('.furniture-item');
+            
+            function filterFurniture() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedCategory = categorySelect.value;
+                const minPrice = parseFloat(minPriceInput.value) || 0;
+                const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
+                
+                furnitureItems.forEach(item => {
+                    const name = item.dataset.name;
+                    const category = item.dataset.category;
+                    const price = parseFloat(item.dataset.price);
+                    
+                    const matchesSearch = name.includes(searchTerm);
+                    const matchesCategory = selectedCategory === '' || category === selectedCategory;
+                    const matchesPrice = price >= minPrice && price <= maxPrice;
+                    
+                    if (matchesSearch && matchesCategory && matchesPrice) {
+                        item.classList.remove('d-none');
+                        item.classList.add('d-flex');
+                    } else {
+                        item.classList.add('d-none');
+                        item.classList.remove('d-flex');
+                    }
+                });
+            }
+            
+            searchInput.addEventListener('input', filterFurniture);
+            categorySelect.addEventListener('change', filterFurniture);
+            minPriceInput.addEventListener('input', filterFurniture);
+            maxPriceInput.addEventListener('input', filterFurniture);
+        });
+    </script>
+}

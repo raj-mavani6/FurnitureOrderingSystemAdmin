@@ -1,0 +1,318 @@
+@model List<Combo>
+@{
+    ViewData["Title"] = "Combo Management";
+    var searchTerm = ViewBag.SearchTerm as string;
+    var isActive = ViewBag.IsActive as bool?;
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Combo Management</h1>
+            <p class="text-muted mb-0">Manage furniture combo offers and bundles</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Create", "Combo")" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add Combo
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Combo Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card bg-primary">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count</h4>
+                <p class="stat-label">Total Combos</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-success">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(c => c.IsActive)</h4>
+                <p class="stat-label">Available</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-warning">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(c => !c.IsActive)</h4>
+                <p class="stat-label">Unavailable</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-pause-circle"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-info">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Sum(c => c.ComboItems.Count)</h4>
+                <p class="stat-label">Total Items</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-couch"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search Combos</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by name, description..." value="@searchTerm">
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="isActive" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="true" selected="@(isActive == true)">Available Only</option>
+                    <option value="false" selected="@(isActive == false)">Unavailable Only</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a href="@Url.Action("Index", "Combo")" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Combos List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            Combos (@Model.Count)
+        </h5>
+    </div>
+    
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="row g-4">
+                @foreach (var combo in Model)
+                {
+                    // Calculate total price from all ComboItems (sum of Furniture prices * quantities)
+                    var totalItemsPrice = combo.ComboItems.Sum(ci => (ci.Furniture?.Price ?? 0) * ci.Quantity);
+                    // DiscountedPrice is the discount amount, so final price = total - discount
+                    var discountAmount = combo.DiscountedPrice;
+                    var finalPrice = totalItemsPrice - discountAmount;
+                    var savings = discountAmount;
+                    var savingsPercent = totalItemsPrice > 0 ? (savings / totalItemsPrice * 100) : 0;
+                    
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="combo-card h-100">
+                            <div class="combo-image">
+                                @if (!string.IsNullOrEmpty(combo.ImageUrl))
+                                {
+                                    <img src="@combo.ImageUrl" alt="@combo.Name" class="img-fluid">
+                                }
+                                else
+                                {
+                                    <div class="no-image">
+                                        <i class="fas fa-box-open fa-3x text-muted"></i>
+                                    </div>
+                                }
+                                <span class="badge bg-@(combo.IsActive ? "success" : "secondary") position-absolute top-0 end-0 m-2">
+                                    @(combo.IsActive ? "Available" : "Unavailable")
+                                </span>
+                                @if (savingsPercent > 0)
+                                {
+                                    <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+                                        @savingsPercent.ToString("0")% OFF
+                                    </span>
+                                }
+                            </div>
+                            
+                            <div class="combo-info">
+                                <h6 class="text-navy mb-1">@combo.Name</h6>
+                                <p class="text-muted small mb-2">
+                                    @(string.IsNullOrEmpty(combo.Description) ? "No description" : 
+                                      (combo.Description.Length > 60 ? combo.Description.Substring(0, 60) + "..." : combo.Description))
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <span class="text-decoration-line-through text-muted small">₹@totalItemsPrice.ToString("N0")</span>
+                                        <span class="h5 text-success mb-0 ms-1">₹@finalPrice.ToString("N0")</span>
+                                    </div>
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-couch me-1"></i>@combo.ComboItems.Count items
+                                    </span>
+                                </div>
+                                
+                                <small class="text-muted d-block mb-3">Created: @combo.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                
+                                <div class="combo-actions">
+                                    <div class="btn-group w-100" role="group">
+                                        <a href="@Url.Action("Details", "Combo", new { id = combo.Id })" 
+                                           class="btn btn-outline-info btn-sm" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="@Url.Action("Edit", "Combo", new { id = combo.Id })" 
+                                           class="btn btn-outline-primary btn-sm" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-@(combo.IsActive ? "warning" : "success") btn-sm" 
+                                                onclick="toggleComboStatus(@combo.Id)" title="@(combo.IsActive ? "Mark Unavailable" : "Mark Available")">
+                                            <i class="fas fa-@(combo.IsActive ? "pause" : "play")"></i>
+                                        </button>
+                                        <a href="@Url.Action("Delete", "Combo", new { id = combo.Id })" 
+                                           class="btn btn-outline-danger btn-sm" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No combos found</h5>
+                <p class="text-muted">
+                    @if (!string.IsNullOrEmpty(searchTerm) || isActive.HasValue)
+                    {
+                        <span>No combos match your search criteria.</span>
+                    }
+                    else
+                    {
+                        <span>Get started by creating your first combo offer.</span>
+                    }
+                </p>
+                <a href="@Url.Action("Create", "Combo")" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Combo
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+
+        .combo-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .combo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .combo-image {
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg-light-beige);
+        }
+
+        .combo-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .no-image {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .combo-info {
+            padding: 1rem;
+        }
+
+        .text-gold {
+            color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        function toggleComboStatus(comboId) {
+            if (confirm('Toggle combo availability?')) {
+                fetch('@Url.Action("ToggleStatus", "Combo")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=${comboId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        AdminUtils.showNotification('Combo status updated', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        AdminUtils.showNotification('Failed to update combo status', 'error');
+                    }
+                })
+                .catch(error => {
+                    AdminUtils.showNotification('An error occurred', 'error');
+                });
+            }
+        }
+    </script>
+}

@@ -1,0 +1,338 @@
+@model Furniture
+@{
+    ViewData["Title"] = "Delete Furniture";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-danger fw-bold">Delete Furniture</h1>
+            <p class="text-muted mb-0">Permanently remove this furniture item</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Furniture")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Warning Alert -->
+<div class="alert alert-danger" role="alert">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+        <div>
+            <h5 class="alert-heading mb-1">Warning: Permanent Deletion</h5>
+            <p class="mb-0">
+                This action cannot be undone. Once deleted, this furniture item and all associated data will be permanently removed from the system.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Item Details -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-trash me-2"></i>Item to be Deleted
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="delete-item-image">
+                            <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="item-details">
+                            <span class="badge bg-secondary mb-2">@Model.Category.Name</span>
+                            <h3 class="text-navy fw-bold mb-3">@Model.Name</h3>
+                            
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <strong>Price:</strong>
+                                    <span>₹@Model.Price.ToString("N0")</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Stock:</strong>
+                                    <span class="badge bg-@(Model.Stock == 0 ? "danger" : Model.Stock <= 5 ? "warning" : "success")">
+                                        @Model.Stock units
+                                    </span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Status:</strong>
+                                    <span class="badge bg-@(Model.IsAvailable ? "success" : "secondary")">
+                                        @(Model.IsAvailable ? "Available" : "Unavailable")
+                                    </span>
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(Model.Color))
+                                {
+                                    <div class="detail-item">
+                                        <strong>Color:</strong>
+                                        <span>@Model.Color</span>
+                                    </div>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(Model.Material))
+                                {
+                                    <div class="detail-item">
+                                        <strong>Material:</strong>
+                                        <span>@Model.Material</span>
+                                    </div>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(Model.Dimensions))
+                                {
+                                    <div class="detail-item">
+                                        <strong>Dimensions:</strong>
+                                        <span>@Model.Dimensions</span>
+                                    </div>
+                                }
+                                
+                                <div class="detail-item">
+                                    <strong>Created:</strong>
+                                    <span>@Model.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                
+                                <div class="detail-item">
+                                    <strong>Item ID:</strong>
+                                    <span class="font-monospace">#@Model.Id</span>
+                                </div>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <div class="mt-3">
+                                    <strong>Description:</strong>
+                                    <p class="text-muted mt-1">@Model.Description</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Panel -->
+    <div class="col-lg-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>Confirm Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="confirmation-checklist mb-4">
+                    <h6 class="text-danger mb-3">Before deleting, please confirm:</h6>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmNoOrders">
+                        <label class="form-check-label" for="confirmNoOrders">
+                            No active orders contain this item
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmBackup">
+                        <label class="form-check-label" for="confirmBackup">
+                            I have backed up any necessary data
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmPermanent">
+                        <label class="form-check-label" for="confirmPermanent">
+                            I understand this action is permanent
+                        </label>
+                    </div>
+                </div>
+                
+                <form method="post" asp-action="Delete" id="deleteForm">
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                            <i class="fas fa-trash me-2"></i>Yes, Delete Permanently
+                        </button>
+                        
+                        <a href="@Url.Action("Details", "Furniture", new { id = Model.Id })" class="btn btn-outline-secondary">
+                            <i class="fas fa-eye me-2"></i>View Details Instead
+                        </a>
+                        
+                        <a href="@Url.Action("Index", "Furniture")" class="btn btn-outline-primary">
+                            <i class="fas fa-times me-2"></i>Cancel Deletion
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Alternative Actions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>Alternative Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Instead of deleting, consider these alternatives:
+                </p>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="makeUnavailable()">
+                        <i class="fas fa-eye-slash me-2"></i>Make Unavailable
+                    </button>
+                    
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="setZeroStock()">
+                        <i class="fas fa-boxes me-2"></i>Set Stock to Zero
+                    </button>
+                    
+                    <a href="@Url.Action("Edit", "Furniture", new { id = Model.Id })" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit me-2"></i>Edit Instead
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Impact Warning -->
+        <div class="card mt-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Deletion Impact
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Item will be removed from all categories
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Customer wishlists will be updated
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Historical data will be preserved
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        Cannot be undone once confirmed
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .delete-item-image {
+            height: 200px;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-item-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-item:nth-child(odd) {
+            grid-column: 1;
+        }
+
+        .detail-item:nth-child(even) {
+            grid-column: 2;
+        }
+
+        .confirmation-checklist .form-check-input:checked ~ .form-check-label {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .detail-item:nth-child(odd),
+            .detail-item:nth-child(even) {
+                grid-column: 1;
+            }
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Enable delete button only when all checkboxes are checked
+            const checkboxes = document.querySelectorAll('.confirmation-checklist input[type="checkbox"]');
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            
+            function updateDeleteButton() {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                deleteBtn.disabled = !allChecked;
+            }
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateDeleteButton);
+            });
+            
+            // Confirm deletion
+            document.getElementById('deleteForm').addEventListener('submit', function(e) {
+                if (!confirm('Are you absolutely sure you want to delete this furniture item? This action cannot be undone!')) {
+                    e.preventDefault();
+                }
+            });
+        });
+        
+        function makeUnavailable() {
+            if (confirm('Make this item unavailable instead of deleting it?')) {
+                // This would make an AJAX call to set IsAvailable = false
+                AdminUtils.showNotification('Item marked as unavailable', 'success');
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Details", "Furniture", new { id = Model.Id })';
+                }, 1500);
+            }
+        }
+        
+        function setZeroStock() {
+            if (confirm('Set stock to zero instead of deleting the item?')) {
+                // This would make an AJAX call to set Stock = 0
+                AdminUtils.showNotification('Stock set to zero', 'success');
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Details", "Furniture", new { id = Model.Id })';
+                }, 1500);
+            }
+        }
+    </script>
+}

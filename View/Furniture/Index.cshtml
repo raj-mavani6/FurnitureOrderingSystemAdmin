@@ -1,0 +1,372 @@
+@model List<Furniture>
+@{
+    ViewData["Title"] = "Furniture Management";
+    var categories = ViewBag.Categories as List<Category>;
+    var currentCategory = ViewBag.CurrentCategory as int?;
+    var searchTerm = ViewBag.SearchTerm as string;
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Furniture Management</h1>
+            <p class="text-muted mb-0">Manage your furniture inventory</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Create", "Furniture")" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add New Furniture
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search Furniture</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by name or description..." value="@searchTerm">
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Category</label>
+                <select name="categoryId" class="form-select">
+                    <option value="">All Categories</option>
+                    @if (categories != null)
+                    {
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id" selected="@(currentCategory == category.Id)">
+                                @category.Name
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a href="@Url.Action("Index", "Furniture")" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Furniture List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            Furniture Items (@Model.Count)
+        </h5>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" id="gridView">
+                <i class="fas fa-th"></i> Grid
+            </button>
+            <button class="btn btn-outline-secondary btn-sm active" id="listView">
+                <i class="fas fa-list"></i> List
+            </button>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <!-- List View (Default) -->
+            <div id="listViewContainer">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var furniture in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="furniture-thumb">
+                                            <img src="@furniture.ImageUrl" alt="@furniture.Name" class="img-fluid rounded">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <h6 class="mb-1 text-navy">@furniture.Name</h6>
+                                            <small class="text-muted">@furniture.Description?.Substring(0, Math.Min(50, furniture.Description.Length))...</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@furniture.Category.Name</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-navy">₹@furniture.Price.ToString("N0")</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@(furniture.Stock == 0 ? "danger" : furniture.Stock <= 5 ? "warning" : "success")">
+                                            @furniture.Stock units
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@(furniture.IsAvailable ? "success" : "secondary")">
+                                            @(furniture.IsAvailable ? "Available" : "Unavailable")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("Details", "Furniture", new { id = furniture.Id })" 
+                                               class="btn btn-outline-info btn-sm" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="@Url.Action("Edit", "Furniture", new { id = furniture.Id })" 
+                                               class="btn btn-outline-primary btn-sm" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="@Url.Action("Delete", "Furniture", new { id = furniture.Id })" 
+                                               class="btn btn-outline-danger btn-sm" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Grid View (Hidden by default) -->
+            <div id="gridViewContainer" style="display: none;">
+                <div class="row g-4">
+                    @foreach (var furniture in Model)
+                    {
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="furniture-card h-100">
+                                <div class="furniture-image">
+                                    <img src="@furniture.ImageUrl" alt="@furniture.Name" class="img-fluid">
+                                    <div class="furniture-overlay">
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("Details", "Furniture", new { id = furniture.Id })" 
+                                               class="btn btn-light btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="@Url.Action("Edit", "Furniture", new { id = furniture.Id })" 
+                                               class="btn btn-light btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Status Badges -->
+                                    <div class="position-absolute top-0 start-0 m-2">
+                                        @if (!furniture.IsAvailable)
+                                        {
+                                            <span class="badge bg-secondary">Unavailable</span>
+                                        }
+                                        @if (furniture.Stock == 0)
+                                        {
+                                            <span class="badge bg-danger">Out of Stock</span>
+                                        }
+                                        else if (furniture.Stock <= 5)
+                                        {
+                                            <span class="badge bg-warning">Low Stock</span>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div class="furniture-info p-3">
+                                    <span class="badge bg-gold text-dark mb-2">@furniture.Category.Name</span>
+                                    <h6 class="furniture-title text-navy">@furniture.Name</h6>
+                                    <p class="text-muted small mb-2">@furniture.Description?.Substring(0, Math.Min(80, furniture.Description.Length))...</p>
+                                    
+                                    <div class="furniture-specs mb-2">
+                                        @if (!string.IsNullOrEmpty(furniture.Color))
+                                        {
+                                            <small class="text-muted me-2">
+                                                <i class="fas fa-palette me-1"></i>@furniture.Color
+                                            </small>
+                                        }
+                                        @if (!string.IsNullOrEmpty(furniture.Material))
+                                        {
+                                            <small class="text-muted">
+                                                <i class="fas fa-cube me-1"></i>@furniture.Material
+                                            </small>
+                                        }
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="price fw-bold text-navy">₹@furniture.Price.ToString("N0")</div>
+                                            <small class="text-muted">Stock: @furniture.Stock</small>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                                    type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item" href="@Url.Action("Details", "Furniture", new { id = furniture.Id })">
+                                                        <i class="fas fa-eye me-2"></i>View Details
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="@Url.Action("Edit", "Furniture", new { id = furniture.Id })">
+                                                        <i class="fas fa-edit me-2"></i>Edit
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="@Url.Action("Delete", "Furniture", new { id = furniture.Id })">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-couch fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No furniture found</h5>
+                <p class="text-muted">
+                    @if (!string.IsNullOrEmpty(searchTerm) || currentCategory.HasValue)
+                    {
+                        <span>No furniture matches your search criteria.</span>
+                    }
+                    else
+                    {
+                        <span>Start by adding your first furniture item.</span>
+                    }
+                </p>
+                <a href="@Url.Action("Create", "Furniture")" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Furniture
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .furniture-thumb {
+            width: 60px;
+            height: 60px;
+        }
+
+        .furniture-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .furniture-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .furniture-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .furniture-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .furniture-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .furniture-card:hover .furniture-image img {
+            transform: scale(1.1);
+        }
+
+        .furniture-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 58, 82, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .furniture-card:hover .furniture-overlay {
+            opacity: 1;
+        }
+
+        .furniture-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .price {
+            font-size: 1.1rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .bg-gold {
+            background-color: #D4AF37 !important;
+        }
+    </style>
+    
+    <script>
+        // View toggle functionality
+        document.getElementById('listView').addEventListener('click', function() {
+            document.getElementById('listViewContainer').style.display = 'block';
+            document.getElementById('gridViewContainer').style.display = 'none';
+            
+            this.classList.add('active');
+            document.getElementById('gridView').classList.remove('active');
+        });
+        
+        document.getElementById('gridView').addEventListener('click', function() {
+            document.getElementById('listViewContainer').style.display = 'none';
+            document.getElementById('gridViewContainer').style.display = 'block';
+            
+            this.classList.add('active');
+            document.getElementById('listView').classList.remove('active');
+        });
+    </script>
+}

@@ -1,0 +1,139 @@
+@model Coupon
+@{
+    ViewData["Title"] = "Coupon Assignments";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Coupon Assignments</h1>
+            <p class="text-muted mb-0">Customers assigned to: <strong class="text-primary">@Model.CouponCode</strong></p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Assign", "Coupon")" class="btn btn-info me-2">
+                <i class="fas fa-user-tag me-2"></i>Assign More
+            </a>
+            <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Coupons
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
+        <!-- Coupon Info Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-ticket-alt me-2 text-gold"></i>Coupon Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Code</small>
+                    <h5 class="text-primary mb-0">@Model.CouponCode</h5>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Description</small>
+                    <p class="mb-0">@Model.Description</p>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Discount</small>
+                        <p class="mb-0 fw-bold">
+                            @(Model.DiscountType == "Percentage" ? $"{Model.DiscountValue}%" : $"₹{Model.DiscountValue}")
+                        </p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Min Order</small>
+                        <p class="mb-0">₹@Model.MinimumOrderAmount.ToString("N0")</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Expires</small>
+                        <p class="mb-0">@Model.ExpiryDate.ToString("MMM dd, yyyy")</p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Status</small>
+                        <p class="mb-0">
+                            <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                                @(Model.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Assignments Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users me-2 text-gold"></i>Assigned Customers (@(Model.CustomerCoupons?.Count ?? 0))
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.CustomerCoupons?.Any() == true)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Email</th>
+                                    <th>Assigned Date</th>
+                                    <th>Remaining Usage</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var cc in Model.CustomerCoupons)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@cc.Customer?.FirstName @cc.Customer?.LastName</strong>
+                                        </td>
+                                        <td>@cc.Customer?.Email</td>
+                                        <td>@cc.AssignedDate.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            <span class="badge bg-@(cc.RemainingUsage > 0 ? "success" : "secondary")">
+                                                @cc.RemainingUsage
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if (cc.IsUsed)
+                                            {
+                                                <span class="badge bg-info">Used</span>
+                                                <small class="text-muted d-block">@cc.UsedDate?.ToString("MMM dd")</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">Pending</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No assignments yet</h5>
+                        <p class="text-muted">Assign this coupon to customers to start tracking usage</p>
+                        <a href="@Url.Action("Assign", "Coupon")" class="btn btn-info">
+                            <i class="fas fa-user-tag me-2"></i>Assign Coupon
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

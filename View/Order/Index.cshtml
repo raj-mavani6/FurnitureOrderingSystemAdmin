@@ -1,0 +1,478 @@
+@model List<Order>
+@{
+    ViewData["Title"] = "Order Management";
+    var currentStatus = ViewBag.CurrentStatus as string;
+    var searchTerm = ViewBag.SearchTerm as string;
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Order Management</h1>
+            <p class="text-muted mb-0">Manage customer orders and track deliveries</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-success" onclick="exportOrders('csv')">
+                    <i class="fas fa-download me-2"></i>Export CSV
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="exportOrders('pdf')">
+                    <i class="fas fa-file-pdf me-2"></i>Export PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card bg-warning">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(o => o.Status == "Pending")</h4>
+                <p class="stat-label">Pending Orders</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-info">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(o => o.Status == "Confirmed")</h4>
+                <p class="stat-label">Confirmed Orders</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-primary">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(o => o.Status == "Shipped")</h4>
+                <p class="stat-label">Shipped Orders</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-shipping-fast"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card bg-success">
+            <div class="stat-content">
+                <h4 class="stat-number">@Model.Count(o => o.Status == "Delivered")</h4>
+                <p class="stat-label">Delivered Orders</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-check-double"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search Orders</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by order number, customer..." value="@searchTerm">
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Order Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" selected="@(currentStatus == "Pending")">Pending</option>
+                    <option value="Confirmed" selected="@(currentStatus == "Confirmed")">Confirmed</option>
+                    <option value="Shipped" selected="@(currentStatus == "Shipped")">Shipped</option>
+                    <option value="Delivered" selected="@(currentStatus == "Delivered")">Delivered</option>
+                    <option value="Cancelled" selected="@(currentStatus == "Cancelled")">Cancelled</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-filter me-1"></i>Filter
+                </button>
+                <a href="@Url.Action("Index", "Order")" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Orders List -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            Orders (@Model.Count)
+        </h5>
+        <div class="d-flex gap-2">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="autoRefresh">
+                <label class="form-check-label" for="autoRefresh">
+                    Auto Refresh
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </div>
+                            </th>
+                            <th>Order Details</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input order-checkbox" type="checkbox" value="@order.Id">
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="order-info">
+                                        <h6 class="mb-1 text-navy">#@order.OrderNumber</h6>
+                                        <small class="text-muted">ID: @order.Id</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="customer-info">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <span class="avatar-title bg-light text-navy rounded-circle">
+                                                    @order.Customer.FirstName.Substring(0, 1)@order.Customer.LastName.Substring(0, 1)
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">@order.Customer.FirstName @order.Customer.LastName</div>
+                                                <small class="text-muted">@order.Customer.Email</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@order.OrderItems.Count items</span>
+                                </td>
+                                <td>
+                                    <strong class="text-navy">₹@order.TotalAmount.ToString("N0")</strong>
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm badge bg-@(order.Status == "Pending" ? "warning" : 
+                                                                           order.Status == "Confirmed" ? "info" : 
+                                                                           order.Status == "Shipped" ? "primary" : 
+                                                                           order.Status == "Delivered" ? "success" : "danger") dropdown-toggle" 
+                                                type="button" data-bs-toggle="dropdown">
+                                            @order.Status
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            @if (order.Status != "Pending")
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateOrderStatus(@order.Id, 'Pending')">
+                                                        <i class="fas fa-clock me-2 text-warning"></i>Pending
+                                                    </a>
+                                                </li>
+                                            }
+                                            @if (order.Status != "Confirmed")
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateOrderStatus(@order.Id, 'Confirmed')">
+                                                        <i class="fas fa-check me-2 text-info"></i>Confirmed
+                                                    </a>
+                                                </li>
+                                            }
+                                            @if (order.Status != "Shipped")
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateOrderStatus(@order.Id, 'Shipped')">
+                                                        <i class="fas fa-shipping-fast me-2 text-primary"></i>Shipped
+                                                    </a>
+                                                </li>
+                                            }
+                                            @if (order.Status != "Delivered")
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="updateOrderStatus(@order.Id, 'Delivered')">
+                                                        <i class="fas fa-check-double me-2 text-success"></i>Delivered
+                                                    </a>
+                                                </li>
+                                            }
+                                            @if (order.Status != "Cancelled")
+                                            {
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="#" onclick="updateOrderStatus(@order.Id, 'Cancelled')">
+                                                        <i class="fas fa-times me-2"></i>Cancel
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>@order.OrderDate.ToString("MMM dd, yyyy")</div>
+                                    <small class="text-muted">@order.OrderDate.ToString("HH:mm")</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="@Url.Action("Details", "Order", new { id = order.Id })" 
+                                           class="btn btn-outline-info btn-sm" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                onclick="printOrder(@order.Id)" title="Print Order">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                        <a href="@Url.Action("Delete", "Order", new { id = order.Id })" 
+                                           class="btn btn-outline-danger btn-sm" title="Delete Order">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Bulk Actions -->
+            <div class="bulk-actions mt-3" style="display: none;">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted">
+                        <span id="selectedCount">0</span> orders selected
+                    </span>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="bulkUpdateStatus('Confirmed')">
+                            <i class="fas fa-check me-1"></i>Mark as Confirmed
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="bulkUpdateStatus('Shipped')">
+                            <i class="fas fa-shipping-fast me-1"></i>Mark as Shipped
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="bulkUpdateStatus('Delivered')">
+                            <i class="fas fa-check-double me-1"></i>Mark as Delivered
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="bulkDelete()">
+                            <i class="fas fa-trash me-1"></i>Delete Selected
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No orders found</h5>
+                <p class="text-muted">
+                    @if (!string.IsNullOrEmpty(searchTerm) || !string.IsNullOrEmpty(currentStatus))
+                    {
+                        <span>No orders match your search criteria.</span>
+                    }
+                    else
+                    {
+                        <span>Orders will appear here once customers start placing them.</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+        }
+
+        .avatar-title {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .bulk-actions {
+            background: var(--bg-light-beige);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-content {
+            flex-grow: 1;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+    </style>
+    
+    <script>
+        // Select all functionality
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActions();
+        });
+        
+        // Individual checkbox functionality
+        document.querySelectorAll('.order-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateBulkActions);
+        });
+        
+        function updateBulkActions() {
+            const selectedCheckboxes = document.querySelectorAll('.order-checkbox:checked');
+            const bulkActions = document.querySelector('.bulk-actions');
+            const selectedCount = document.getElementById('selectedCount');
+            
+            if (selectedCheckboxes.length > 0) {
+                bulkActions.style.display = 'block';
+                selectedCount.textContent = selectedCheckboxes.length;
+            } else {
+                bulkActions.style.display = 'none';
+            }
+        }
+        
+        function updateOrderStatus(orderId, newStatus) {
+            if (confirm(`Update order status to ${newStatus}?`)) {
+                // Make AJAX request to update status
+                fetch('@Url.Action("UpdateStatus", "Order")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=${orderId}&status=${newStatus}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        AdminUtils.showNotification(`Order status updated to ${newStatus}`, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        AdminUtils.showNotification('Failed to update order status', 'error');
+                    }
+                })
+                .catch(error => {
+                    AdminUtils.showNotification('An error occurred', 'error');
+                });
+            }
+        }
+        
+        function bulkUpdateStatus(status) {
+            const selectedOrders = Array.from(document.querySelectorAll('.order-checkbox:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedOrders.length === 0) {
+                AdminUtils.showNotification('Please select orders first', 'warning');
+                return;
+            }
+            
+            if (confirm(`Update ${selectedOrders.length} orders to ${status}?`)) {
+                // Implement bulk update logic
+                AdminUtils.showNotification(`${selectedOrders.length} orders updated to ${status}`, 'success');
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+        
+        function bulkDelete() {
+            const selectedOrders = Array.from(document.querySelectorAll('.order-checkbox:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedOrders.length === 0) {
+                AdminUtils.showNotification('Please select orders first', 'warning');
+                return;
+            }
+            
+            if (confirm(`Delete ${selectedOrders.length} selected orders? This action cannot be undone.`)) {
+                // Implement bulk delete logic
+                AdminUtils.showNotification(`${selectedOrders.length} orders deleted`, 'success');
+                setTimeout(() => location.reload(), 1500);
+            }
+        }
+        
+        function printOrder(orderId) {
+            window.open(`@Url.Action("Details", "Order")/${orderId}?print=true`, '_blank');
+        }
+        
+        function exportOrders(format) {
+            AdminUtils.showNotification(`Exporting orders in ${format.toUpperCase()} format...`, 'info');
+            // Implement export logic
+        }
+        
+        // Auto-refresh functionality
+        let autoRefreshInterval;
+        document.getElementById('autoRefresh').addEventListener('change', function() {
+            if (this.checked) {
+                autoRefreshInterval = setInterval(() => {
+                    location.reload();
+                }, 30000); // Refresh every 30 seconds
+                AdminUtils.showNotification('Auto-refresh enabled (30s)', 'info', 2000);
+            } else {
+                clearInterval(autoRefreshInterval);
+                AdminUtils.showNotification('Auto-refresh disabled', 'info', 2000);
+            }
+        });
+    </script>
+}

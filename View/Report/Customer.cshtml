@@ -1,0 +1,247 @@
+@model List<FurnitureOrderingSystemAdmin.Models.Customer>
+@{
+    ViewData["Title"] = "Customer Reports";
+    var customerOrders = ViewBag.CustomerOrders as Dictionary<int, List<FurnitureOrderingSystemAdmin.Models.Order>>;
+    var topCustomers = ViewBag.TopCustomers as List<dynamic>;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="fas fa-users me-2"></i>Customer Reports
+                    </h2>
+                    <p class="text-muted">Customer analytics and behavior insights</p>
+                </div>
+                <div>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Reports
+                    </a>
+                    <a href="@Url.Action("ExportCustomersCSV")" class="btn btn-danger">
+                        <i class="fas fa-download me-1"></i>Export CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Total Customers</h6>
+                    <h3 class="mb-0">@ViewBag.TotalCustomers</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Active Customers</h6>
+                    <h3 class="mb-0">@ViewBag.ActiveCustomers</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Repeat Customers</h6>
+                    <h3 class="mb-0">@ViewBag.RepeatCustomers</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h6 class="card-title">New This Month</h6>
+                    <h3 class="mb-0">@ViewBag.NewCustomersThisMonth</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Inactive</h6>
+                    <h3 class="mb-0">@ViewBag.InactiveCustomers</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2 mb-3">
+            <div class="card bg-dark text-white">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Avg Spend</h6>
+                    <h3 class="mb-0">₹@ViewBag.AvgSpendPerCustomer</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Customer Growth Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2 text-primary"></i>Customer Growth
+                    </h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="loadCustomerChart('daily')">Daily</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="loadCustomerChart('weekly')">Weekly</button>
+                        <button type="button" class="btn btn-primary" onclick="loadCustomerChart('monthly')">Monthly</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="loadCustomerChart('yearly')">Yearly</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="customerGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Customers -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2 text-warning"></i>Top Customers
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (topCustomers != null && topCustomers.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @{ int rank = 1; }
+                            @foreach (var customer in topCustomers.Take(5))
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge @(rank == 1 ? "bg-warning" : rank == 2 ? "bg-secondary" : rank == 3 ? "bg-danger" : "bg-primary") me-2">#@rank</span>
+                                        <strong>@customer.FullName</strong>
+                                        <br />
+                                        <small class="text-muted">@customer.TotalOrders orders</small>
+                                    </div>
+                                    <span class="text-success fw-bold">₹@customer.TotalSpent.ToString("N0")</span>
+                                </div>
+                                rank++;
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center mb-0">
+                            <i class="fas fa-info-circle me-2"></i>No customer data.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Customers Table -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-table me-2"></i>All Customers
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Registered</th>
+                                <th class="text-center">Orders</th>
+                                <th class="text-end">Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var customer in Model)
+                            {
+                                var orders = customerOrders != null && customerOrders.ContainsKey(customer.Id) ? customerOrders[customer.Id] : new List<FurnitureOrderingSystemAdmin.Models.Order>();
+                                var totalSpent = orders.Sum(o => o.TotalAmount);
+                                <tr>
+                                    <td>@customer.Id</td>
+                                    <td><strong>@($"{customer.FirstName} {customer.LastName}")</strong></td>
+                                    <td>@customer.Email</td>
+                                    <td>@customer.Phone</td>
+                                    <td>@customer.CreatedAt.ToString("dd MMM yyyy")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">@orders.Count</span>
+                                    </td>
+                                    <td class="text-end text-success">
+                                        <strong>₹@totalSpent.ToString("N0")</strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>No customers found.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var customerGrowthChart;
+
+        function loadCustomerChart(period) {
+            fetch('@Url.Action("GetCustomerChartData")?period=' + period)
+                .then(response => response.json())
+                .then(data => {
+                    if (customerGrowthChart) {
+                        customerGrowthChart.destroy();
+                    }
+
+                    var ctx = document.getElementById('customerGrowthChart').getContext('2d');
+                    customerGrowthChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'New Customers',
+                                data: data.values,
+                                backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                                borderColor: '#dc3545',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        // Initialize with monthly data
+        loadCustomerChart('monthly');
+    </script>
+}

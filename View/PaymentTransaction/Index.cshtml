@@ -1,0 +1,207 @@
+@model List<PaymentTransaction>
+@{
+    ViewData["Title"] = "Payment Transactions";
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Payment Transactions</h1>
+            <p class="text-muted mb-0">View and manage payment transactions</p>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card bg-primary">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.TotalTransactions</h4>
+                <p class="stat-label">Total Transactions</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-success">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.CompletedTransactions</h4>
+                <p class="stat-label">Completed</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-warning">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.PendingTransactions</h4>
+                <p class="stat-label">Pending</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card bg-info">
+            <div class="stat-content">
+                <h4 class="stat-number">₹@(((decimal?)ViewBag.TotalAmount ?? 0).ToString("N0"))</h4>
+                <p class="stat-label">Total Revenue</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-rupee-sign"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <!-- Transaction ID & Customer Name -->
+            <div class="col-md-3">
+                <label class="form-label">Transaction ID</label>
+                <input type="text" name="transactionId" class="form-control" 
+                       placeholder="Search by Transaction ID" value="@ViewBag.TransactionId">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Customer Name</label>
+                <input type="text" name="customerName" class="form-control" 
+                       placeholder="Search by customer name" value="@ViewBag.CustomerName">
+            </div>
+            
+            <!-- Payment Method -->
+            <div class="col-md-3">
+                <label class="form-label">Payment Method</label>
+                <select name="paymentMethod" class="form-select">
+                    <option value="">All Methods</option>
+                    <option value="Cash" selected="@(ViewBag.PaymentMethod == "Cash")">Cash</option>
+                    <option value="Credit Card" selected="@(ViewBag.PaymentMethod == "Credit Card")">Credit Card</option>
+                    <option value="Debit Card" selected="@(ViewBag.PaymentMethod == "Debit Card")">Debit Card</option>
+                    <option value="UPI" selected="@(ViewBag.PaymentMethod == "UPI")">UPI</option>
+                    <option value="Net Banking" selected="@(ViewBag.PaymentMethod == "Net Banking")">Net Banking</option>
+                    <option value="Wallet" selected="@(ViewBag.PaymentMethod == "Wallet")">Wallet</option>
+                </select>
+            </div>
+            
+            <!-- Payment Status -->
+            <div class="col-md-3">
+                <label class="form-label">Payment Status</label>
+                <select name="paymentStatus" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="Pending" selected="@(ViewBag.PaymentStatus == "Pending")">Pending</option>
+                    <option value="Completed" selected="@(ViewBag.PaymentStatus == "Completed")">Completed</option>
+                    <option value="Failed" selected="@(ViewBag.PaymentStatus == "Failed")">Failed</option>
+                    <option value="Refunded" selected="@(ViewBag.PaymentStatus == "Refunded")">Refunded</option>
+                </select>
+            </div>
+            
+            <!-- Date Range -->
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" name="fromDate" class="form-control" value="@ViewBag.FromDate">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" name="toDate" class="form-control" value="@ViewBag.ToDate">
+            </div>
+            
+            <!-- Buttons -->
+            <div class="col-md-6 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-search me-1"></i>Search
+                </button>
+                <a href="@Url.Action("Index", "PaymentTransaction")" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Transactions (@Model.Count)</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in Model)
+                        {
+                            <tr>
+                                <td><strong class="text-primary">@transaction.TransactionId</strong></td>
+                                <td>@transaction.Order?.OrderNumber</td>
+                                <td>@transaction.Order?.Customer?.FirstName @transaction.Order?.Customer?.LastName</td>
+                                <td class="fw-bold">₹@transaction.Amount.ToString("N0")</td>
+                                <td>
+                                    <span class="badge bg-info">@transaction.PaymentMethod</span>
+                                </td>
+                                <td>@transaction.TransactionDate.ToString("MMM dd, yyyy HH:mm")</td>
+                                <td>
+                                    @{
+                                        var statusClass = transaction.PaymentStatus switch
+                                        {
+                                            "Completed" => "success",
+                                            "Pending" => "warning",
+                                            "Failed" => "danger",
+                                            "Refunded" => "secondary",
+                                            _ => "light"
+                                        };
+                                    }
+                                    <span class="badge bg-@statusClass">@transaction.PaymentStatus</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="@Url.Action("Details", "PaymentTransaction", new { id = transaction.Id })"
+                                           class="btn btn-sm btn-outline-info" title="Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="@Url.Action("Edit", "PaymentTransaction", new { id = transaction.Id })"
+                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="@Url.Action("Delete", "PaymentTransaction", new { id = transaction.Id })"
+                                           class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-credit-card fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted">No transactions found</h5>
+                <p class="text-muted">No payment transactions match your search criteria</p>
+            </div>
+        }
+    </div>
+</div>

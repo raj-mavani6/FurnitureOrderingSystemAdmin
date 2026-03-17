@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FurnitureHub Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="~/css/admin.css" rel="stylesheet" asp-append-version="true" />
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h4 class="text-white fw-bold">
+                    <i class="fas fa-couch me-2"></i>FurnitureHub
+                </h4>
+                <small class="text-light">Admin Panel</small>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Home" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Home")">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </li>
+                
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Furniture" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Furniture")">
+                        <i class="fas fa-couch me-2"></i>Furniture
+                    </a>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Category" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Category")">
+                        <i class="fas fa-layer-group me-2"></i>Categories
+                    </a>
+                </li>
+                
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Order" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Order")">
+                        <i class="fas fa-shopping-bag me-2"></i>Orders
+                    </a>
+                </li>
+                
+                
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Combo" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Combo")">
+                        <i class="fas fa-box-open me-2"></i>Combos
+                    </a>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Coupon" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Coupon")">
+                        <i class="fas fa-ticket-alt me-2"></i>Coupons
+                    </a>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "PaymentTransaction" ? "active" : "")">
+                    <a href="@Url.Action("Index", "PaymentTransaction")">
+                        <i class="fas fa-money-bill-wave me-2"></i>Payments
+                    </a>
+                </li>
+                
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Customer" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Customer")">
+                        <i class="fas fa-users me-2"></i>Customer Management
+                    </a>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Review" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Review")">
+                        <i class="fas fa-star me-2"></i>Reviews
+                    </a>
+                </li>
+                
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Report" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Report")">
+                        <i class="fas fa-chart-bar me-2"></i>Reports
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="#">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-outline-primary">
+                        <i class="fas fa-bars"></i>
+                    </button>
+
+                    <div class="navbar-nav ms-auto">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <div class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                    <div class="avatar-circle me-2">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <span>@User.Identity.Name</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2"></i>Profile</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="post" action="@Url.Action("Logout", "Account")" class="d-inline">
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Alert Messages -->
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </div>
+
+            <!-- Footer -->
+            <footer class="admin-footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-0">&copy; 2024 FurnitureHub Admin Panel. All rights reserved.</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-0">Version 1.0.0</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,272 @@
+@model List<FurnitureOrderingSystemAdmin.Models.Review>
+@{
+    ViewData["Title"] = "Review Reports";
+    var topRatedFurniture = ViewBag.TopRatedFurniture as List<dynamic>;
+    var recentReviews = ViewBag.RecentReviews as List<FurnitureOrderingSystemAdmin.Models.Review>;
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="fas fa-star me-2"></i>Review Reports
+                    </h2>
+                    <p class="text-muted">Customer review analysis and ratings</p>
+                </div>
+                <div>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total Reviews</h6>
+                            <h3 class="mb-0">@ViewBag.TotalReviews</h3>
+                        </div>
+                        <i class="fas fa-comments fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Approved</h6>
+                            <h3 class="mb-0">@ViewBag.ApprovedReviews</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Pending</h6>
+                            <h3 class="mb-0">@ViewBag.PendingReviews</h3>
+                        </div>
+                        <i class="fas fa-clock fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Avg Rating</h6>
+                            <h3 class="mb-0">
+                                <i class="fas fa-star text-warning"></i> @ViewBag.AverageRating
+                            </h3>
+                        </div>
+                        <i class="fas fa-star-half-alt fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Rating Distribution -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-warning"></i>Rating Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2" style="width: 60px;">5 stars</span>
+                            <div class="progress flex-grow-1" style="height: 25px;">
+                                @{
+                                    int total = ViewBag.TotalReviews > 0 ? ViewBag.TotalReviews : 1;
+                                    int five = ViewBag.FiveStarCount;
+                                    int four = ViewBag.FourStarCount;
+                                    int three = ViewBag.ThreeStarCount;
+                                    int two = ViewBag.TwoStarCount;
+                                    int one = ViewBag.OneStarCount;
+                                }
+                                <div class="progress-bar bg-success" style="width: @((five * 100) / total)%">@five</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2" style="width: 60px;">4 stars</span>
+                            <div class="progress flex-grow-1" style="height: 25px;">
+                                <div class="progress-bar bg-primary" style="width: @((four * 100) / total)%">@four</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2" style="width: 60px;">3 stars</span>
+                            <div class="progress flex-grow-1" style="height: 25px;">
+                                <div class="progress-bar bg-info" style="width: @((three * 100) / total)%">@three</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="me-2" style="width: 60px;">2 stars</span>
+                            <div class="progress flex-grow-1" style="height: 25px;">
+                                <div class="progress-bar bg-warning" style="width: @((two * 100) / total)%">@two</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="me-2" style="width: 60px;">1 star</span>
+                            <div class="progress flex-grow-1" style="height: 25px;">
+                                <div class="progress-bar bg-danger" style="width: @((one * 100) / total)%">@one</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container" style="height: 200px;">
+                        <canvas id="ratingDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Rated Furniture -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2 text-warning"></i>Top Rated Furniture
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (topRatedFurniture != null && topRatedFurniture.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @{ int rank = 1; }
+                            @foreach (var item in topRatedFurniture.Take(5))
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge @(rank == 1 ? "bg-warning" : rank == 2 ? "bg-secondary" : rank == 3 ? "bg-danger" : "bg-primary") me-2">#@rank</span>
+                                        <strong>@item.FurnitureName</strong>
+                                        <br />
+                                        <small class="text-muted">@item.ReviewCount reviews</small>
+                                    </div>
+                                    <span class="text-warning fw-bold">
+                                        <i class="fas fa-star"></i> @item.AverageRating
+                                    </span>
+                                </div>
+                                rank++;
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info text-center mb-0">
+                            <i class="fas fa-info-circle me-2"></i>No review data available.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reviews -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-clock me-2"></i>Recent Reviews
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (recentReviews != null && recentReviews.Any())
+            {
+                <div class="row">
+                    @foreach (var review in recentReviews)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>@(review.Customer?.FullName ?? "Anonymous")</strong>
+                                        <span class="text-warning">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= review.Rating)
+                                                {
+                                                    <i class="fas fa-star"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-star"></i>
+                                                }
+                                            }
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        <i class="fas fa-couch me-1"></i>@(review.Furniture?.Name ?? "N/A")
+                                    </p>
+                                    <p class="mb-2">@(review.Comment ?? "No comment")</p>
+                                    <small class="text-muted">
+                                        @review.ReviewDate.ToString("dd MMM yyyy")
+                                        @if (review.IsApproved)
+                                        {
+                                            <span class="badge bg-success ms-2">Approved</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning ms-2">Pending</span>
+                                        }
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>No recent reviews.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Rating Distribution Chart
+        var ctx = document.getElementById('ratingDistributionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
+                datasets: [{
+                    data: [@ViewBag.FiveStarCount, @ViewBag.FourStarCount, @ViewBag.ThreeStarCount, @ViewBag.TwoStarCount, @ViewBag.OneStarCount],
+                    backgroundColor: ['#198754', '#0d6efd', '#0dcaf0', '#ffc107', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    </script>
+}

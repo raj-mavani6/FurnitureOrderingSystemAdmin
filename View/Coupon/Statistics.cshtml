@@ -1,0 +1,242 @@
+@{
+    ViewData["Title"] = "Coupon Statistics";
+    var topCoupons = ViewBag.TopCoupons as List<Coupon> ?? new List<Coupon>();
+    var recentAssignments = ViewBag.RecentAssignments as List<CustomerCoupon> ?? new List<CustomerCoupon>();
+}
+
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 mb-0 text-navy fw-bold">Coupon Statistics</h1>
+            <p class="text-muted mb-0">Overview of coupon usage and performance</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="@Url.Action("Index", "Coupon")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Coupons
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="stat-card bg-primary">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.TotalCoupons</h4>
+                <p class="stat-label">Total Coupons</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-success">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.ActiveCoupons</h4>
+                <p class="stat-label">Active</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-warning">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.ExpiredCoupons</h4>
+                <p class="stat-label">Expired</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-info">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.TotalAssignments</h4>
+                <p class="stat-label">Assigned</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-dark">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.UsedCoupons</h4>
+                <p class="stat-label">Used</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stat-card bg-secondary">
+            <div class="stat-content">
+                <h4 class="stat-number">@ViewBag.UnusedCoupons</h4>
+                <p class="stat-label">Unused</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <!-- Top Coupons -->
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-trophy me-2 text-gold"></i>Top Coupons by Usage
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (topCoupons.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Code</th>
+                                    <th>Discount</th>
+                                    <th>Used</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{int rank = 1;}
+                                @foreach (var coupon in topCoupons)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (rank == 1) { <span class="badge bg-warning">🥇</span> }
+                                            else if (rank == 2) { <span class="badge bg-secondary">🥈</span> }
+                                            else if (rank == 3) { <span class="badge bg-info">🥉</span> }
+                                            else { <span>@rank</span> }
+                                        </td>
+                                        <td><strong class="text-primary">@coupon.CouponCode</strong></td>
+                                        <td>
+                                            @(coupon.DiscountType == "Percentage" ? $"{coupon.DiscountValue}%" : $"₹{coupon.DiscountValue}")
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">
+                                                @(coupon.CustomerCoupons?.Count(cc => cc.IsUsed) ?? 0) times
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    rank++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-bar fa-3x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No usage data yet</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <!-- Recent Assignments -->
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2 text-gold"></i>Recent Assignments
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (recentAssignments.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Coupon</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var assignment in recentAssignments)
+                                {
+                                    <tr>
+                                        <td>@assignment.Customer?.FirstName @assignment.Customer?.LastName</td>
+                                        <td><strong class="text-primary">@assignment.Coupon?.CouponCode</strong></td>
+                                        <td>@assignment.AssignedDate.ToString("MMM dd")</td>
+                                        <td>
+                                            @if (assignment.IsUsed)
+                                            {
+                                                <span class="badge bg-success">Used</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">Pending</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-user-tag fa-3x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No assignments yet</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Usage Chart Placeholder -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-chart-line me-2 text-gold"></i>Usage Overview
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="p-4 border rounded">
+                    <h2 class="text-primary mb-1">@ViewBag.TotalAssignments</h2>
+                    <small class="text-muted">Total Assigned</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 border rounded">
+                    <h2 class="text-success mb-1">@ViewBag.UsedCoupons</h2>
+                    <small class="text-muted">Successfully Used</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 border rounded">
+                    @{
+                        int total = ViewBag.TotalAssignments ?? 0;
+                        int used = ViewBag.UsedCoupons ?? 0;
+                        double rate = total > 0 ? Math.Round((double)used / total * 100, 1) : 0;
+                    }
+                    <h2 class="text-info mb-1">@rate%</h2>
+                    <small class="text-muted">Usage Rate</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
